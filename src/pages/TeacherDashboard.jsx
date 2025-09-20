@@ -1,12 +1,8 @@
-// --- FIX FOR "Could not resolve" ERROR ---
-// Before running, please install the required package by running the following command in your terminal:
-// npm install react-qr-code
-// -----------------------------------------
-
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
+import { BroadcastChannel } from 'broadcast-channel';
+import logo from '../assets/logo dashboard.png'; 
 
 // --- Helper Components & Icons ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -103,9 +99,14 @@ const DashboardView = ({ setActiveTab }) => (
 const AttendanceView = () => {
     const [mode, setMode] = useState(null);
     const [qrValue, setQrValue] = useState('');
+    const channel = new BroadcastChannel('shikshashelf_attendance');
+
     const startQR = () => {
         setMode('qr');
-        setQrValue(JSON.stringify({ class: 'B.Sc Sem III', timestamp: new Date().toISOString() }));
+        const sessionData = { class: 'B.Sc Sem III', sessionId: `SESS_${Date.now()}` };
+        setQrValue(JSON.stringify(sessionData));
+        // Send the session ID to any listening student dashboards
+        channel.postMessage({ type: 'SESSION_START', sessionId: sessionData.sessionId });
     };
     const startFace = () => setMode('face');
     return (
@@ -157,13 +158,11 @@ const AssignmentsView = () => (
     </Card>
 );
 
-// --- UPDATED InsightsView Component ---
 const InsightsView = () => {
     const chartData = [
         { name: 'Completed Tasks', value: insightsData.taskCompletionRate, fill: '#22c55e' },
         { name: 'Incomplete Tasks', value: 100 - insightsData.taskCompletionRate, fill: '#ef4444' },
     ];
-
     return (
         <Card>
             <h2 className="font-bold text-xl mb-4">Student Productivity Insights</h2>
@@ -199,7 +198,6 @@ const InsightsView = () => {
         </Card>
     );
 };
-
 
 const ContentView = () => (
     <Card>
@@ -289,23 +287,21 @@ export default function TeacherDashboard({ onLogout }) {
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
             <aside className="w-20 lg:w-64 bg-gray-800 text-white flex flex-col transition-all duration-300">
-                 <div className="h-20 flex items-center justify-center text-2xl font-bold">
-                    <span className="lg:hidden">S</span>
-                    <span className="hidden lg:inline">ShikshaShelf</span>
-                </div>
-                <nav className="flex-1 px-2 lg:px-4 py-4">
-                    {navItems.map(item => (
-                         <button key={item.id} onClick={() => setActiveTab(item.id)} title={item.label}
-                            className={`w-full flex items-center justify-center lg:justify-start px-4 py-3 my-1 rounded-lg transition-colors duration-200 ${
-                                activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                            }`}
-                        >
-                            <span className="lg:mr-3">{item.icon}</span>
-                            <span className="hidden lg:inline">{item.label}</span>
-                        </button>
-                    ))}
-                </nav>
-            </aside>
+                            <button onClick={() => setActiveTab('dashboard')} className="h-20 w-full flex items-center justify-center p-2 transition-opacity duration-200 hover:opacity-80">
+                                                <img src={logo} alt="E-Shiksha Logo" className="h-60 w-auto" />
+                                            </button>
+                            <nav className="flex-1 px-2 lg:px-4 py-4">
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => setActiveTab(item.id)} title={item.label}
+                                        className={`w-full flex items-center justify-center lg:justify-start px-4 py-3 my-1 rounded-lg transition-colors duration-200 ${
+                                            activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                                        }`}>
+                                        <span className="lg:mr-3">{item.icon}</span>
+                                        <span className="hidden lg:inline">{item.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </aside>
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="bg-white h-20 shadow-md flex-shrink-0 flex items-center justify-between px-8">
                     <div>
@@ -321,3 +317,4 @@ export default function TeacherDashboard({ onLogout }) {
         </div>
     );
 }
+

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import QRScannerModal from './QRScannerModal.jsx';
+import { BroadcastChannel } from 'broadcast-channel';
+import logo from '../assets/logo dashboard.png'; 
 
 // --- Helper Components & Icons ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -8,80 +11,24 @@ const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" he
 const BookOpenIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
 const FileTextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>;
 const HelpCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
-const QrCodeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h.01"/><path d="M21 12h.01"/><path d="M12 21h.01"/></svg>;
-const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
 const LogOutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 const TargetIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12"cy="12" r="2"/></svg>;
+const QrCodeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h.01"/><path d="M21 12h.01"/><path d="M12 21h.01"/></svg>;
 
-// --- MOCK DATA (Consolidated & Expanded) ---
+// --- MOCK DATA ---
 const studentUser = { name: 'Aarav Mehta', goal: 'Career Goal: Data Scientist', attendance: { percentage: 92, total: 200, attended: 184 }};
-const scheduleData = [
-    { time: '09:00 - 10:00', type: 'class', title: 'Advanced Calculus', location: 'Room 301' },
-    { time: '10:00 - 11:00', type: 'class', title: 'Data Structures', location: 'Lab 5' },
-    { time: '11:00 - 01:00', type: 'free', title: 'Free Period', location: 'Campus' },
-    { time: '01:00 - 02:00', type: 'break', title: 'Lunch Break', location: 'Cafeteria' },
-    { time: '02:00 - 04:00', type: 'free', title: 'Free Period', location: 'Campus' },
-];
-const suggestedTasks = [
-    { id: 1, period: '11:00 - 01:00', title: 'Complete Python for Data Science Module 3', reason: 'Aligns with your Data Scientist goal.', duration: "45 min" },
-    { id: 2, period: '11:00 - 01:00', title: 'Review "Derivatives" on Khan Academy', reason: 'You scored 55% on the last Calculus quiz.', duration: "30 min" },
-    { id: 3, period: '02:00 - 04:00', title: 'Practice 5 problems on LeetCode (Easy)', reason: 'Builds foundational coding skills.', duration: "60 min" },
-];
-const performanceData = {
-    scores: [
-        { subject: 'Calculus', score: 55, grade: 'C' },
-        { subject: 'Data Structures', score: 88, grade: 'A' },
-        { subject: 'Statistics', score: 75, grade: 'B' },
-        { subject: 'English', score: 95, grade: 'A+' },
-    ]
-};
-const resourcesData = [
-    { type: 'Notes', title: 'Lecture Notes: Big O Notation', subject: 'Data Structures', link: '#' },
-    { type: 'External', title: 'Khan Academy: Derivatives Introduction', subject: 'Calculus', link: '#' },
-    { type: 'Notes', title: 'Guide to Statistical Models', subject: 'Statistics', link: '#' },
-];
-const assignmentsData = {
-    gamification: { streak: 5, points: 1250 },
-    pending: [
-        { id: 1, title: 'Data Structures: Linked List Implementation', dueDate: '2025-09-18', points: 100 },
-        { id: 2, title: 'Calculus Problem Set 4', dueDate: '2025-09-20', points: 75 },
-    ],
-    quizzes: [
-        { id: 1, title: 'Quiz: Probability Basics', subject: 'Statistics', attempts: '1/2' },
-    ]
-};
-const doubtsData = [
-    { id: 1, question: 'Can you explain the difference between a list and a tuple in Python?', status: 'Answered', answer: 'Yes, the main difference is that lists are mutable (can be changed), while tuples are immutable (cannot be changed after creation).' },
-    { id: 2, question: 'What is the practical application of integrals?', status: 'Pending', answer: null },
-];
+const scheduleData = [ { time: '09:00 - 10:00', type: 'class', title: 'Advanced Calculus', location: 'Room 301' }, { time: '10:00 - 11:00', type: 'class', title: 'Data Structures', location: 'Lab 5' }, { time: '11:00 - 01:00', type: 'free', title: 'Free Period', location: 'Campus' }, { time: '01:00 - 02:00', type: 'break', title: 'Lunch Break', location: 'Cafeteria' }, { time: '02:00 - 04:00', type: 'free', title: 'Free Period', location: 'Campus' },];
+const suggestedTasks = [ { id: 1, period: '11:00 - 01:00', title: 'Complete Python for Data Science Module 3', reason: 'Aligns with your Data Scientist goal.', duration: "45 min" }, { id: 2, period: '11:00 - 01:00', title: 'Review "Derivatives" on Khan Academy', reason: 'You scored 55% on the last Calculus quiz.', duration: "30 min" }, { id: 3, period: '02:00 - 04:00', title: 'Practice 5 problems on LeetCode (Easy)', reason: 'Builds foundational coding skills.', duration: "60 min" },];
+const performanceData = { scores: [ { subject: 'Calculus', score: 55, grade: 'C' }, { subject: 'Data Structures', score: 88, grade: 'A' }, { subject: 'Statistics', score: 75, grade: 'B' }, { subject: 'English', score: 95, grade: 'A+' }, ]};
+const resourcesData = [ { type: 'Notes', title: 'Lecture Notes: Big O Notation', subject: 'Data Structures', link: '#' }, { type: 'External', title: 'Khan Academy: Derivatives Introduction', subject: 'Calculus', link: '#' }, { type: 'Notes', title: 'Guide to Statistical Models', subject: 'Statistics', link: '#' },];
+const assignmentsData = { gamification: { streak: 5, points: 1250 }, pending: [ { id: 1, title: 'Data Structures: Linked List Implementation', dueDate: '2025-09-18', points: 100 }, { id: 2, title: 'Calculus Problem Set 4', dueDate: '2025-09-20', points: 75 }, ], quizzes: [ { id: 1, title: 'Quiz: Probability Basics', subject: 'Statistics', attempts: '1/2' }, ]};
+const doubtsData = [ { id: 1, question: 'Can you explain the difference between a list and a tuple in Python?', status: 'Answered', answer: 'Yes, the main difference is that lists are mutable (can be changed), while tuples are immutable (cannot be changed after creation).' }, { id: 2, question: 'What is the practical application of integrals?', status: 'Pending', answer: null },];
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
-const QRScannerModal = ({ onClose, onScanSuccess }) => {
-    useEffect(() => {
-        const timer = setTimeout(() => { onScanSuccess(); }, 2000);
-        return () => clearTimeout(timer);
-    }, [onScanSuccess]);
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 text-center relative max-w-sm w-full">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><XIcon /></button>
-                <h2 className="text-xl font-bold mb-4">Scan Attendance QR Code</h2>
-                <div className="w-64 h-64 mx-auto bg-gray-800 rounded-lg flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute top-0 w-full h-1 bg-green-400 animate-scan"></div>
-                    <QrCodeIcon className="text-gray-500 w-32 h-32" />
-                    <p className="absolute bottom-4 text-white text-sm">Align QR code within frame</p>
-                </div>
-                <p className="mt-4 text-gray-600 animate-pulse">Scanning...</p>
-            </div>
-            <style>{`@keyframes scan { 0% { transform: translateY(-10px); } 100% { transform: translateY(250px); } } .animate-scan { animation: scan 1.8s ease-in-out infinite; }`}</style>
-        </div>
-    );
-};
 
 // --- View Components ---
-
 const DashboardView = ({ setScannerOpen }) => {
     const mergedSchedule = scheduleData.map(item => {
         const itemWithIcon = { ...item, icon: item.type === 'class' ? <BookOpenIcon/> : <ClockIcon/> };
@@ -137,7 +84,6 @@ const DashboardView = ({ setScannerOpen }) => {
         </div>
     );
 };
-
 const AttendanceView = () => {
     const { attended, total } = studentUser.attendance;
     const absent = total - attended;
@@ -170,7 +116,6 @@ const AttendanceView = () => {
         </div>
     );
 };
-
 const PerformanceView = () => (
     <Card>
         <h2 className="font-bold text-xl mb-4">Performance Overview</h2>
@@ -188,7 +133,6 @@ const PerformanceView = () => (
         </div>
     </Card>
 );
-
 const ResourcesView = () => (
     <Card>
         <h2 className="font-bold text-xl mb-4">Resource Hub</h2>
@@ -206,28 +150,18 @@ const ResourcesView = () => (
         </div>
     </Card>
 );
-
 const AssignmentsView = () => (
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="flex items-center justify-between bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                <div className="font-bold text-lg">
-                    <p>Daily Streak</p>
-                    <p className="text-5xl">{assignmentsData.gamification.streak} 🔥</p>
-                </div>
-                <div className="text-right font-bold text-lg">
-                    <p>Total Points</p>
-                    <p className="text-5xl">{assignmentsData.gamification.points} ✨</p>
-                </div>
+                <div className="font-bold text-lg"><p>Daily Streak</p><p className="text-5xl">{assignmentsData.gamification.streak} 🔥</p></div>
+                <div className="text-right font-bold text-lg"><p>Total Points</p><p className="text-5xl">{assignmentsData.gamification.points} ✨</p></div>
             </Card>
              <Card>
                 <h3 className="font-bold text-lg mb-2">Interactive Quizzes</h3>
                 {assignmentsData.quizzes.map(quiz => (
                     <div key={quiz.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                        <div>
-                            <p className="font-semibold">{quiz.title}</p>
-                            <p className="text-sm text-gray-500">{quiz.subject}</p>
-                        </div>
+                        <div><p className="font-semibold">{quiz.title}</p><p className="text-sm text-gray-500">{quiz.subject}</p></div>
                         <button className="bg-green-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-600">Start Quiz</button>
                     </div>
                 ))}
@@ -238,10 +172,7 @@ const AssignmentsView = () => (
             <div className="space-y-3">
                  {assignmentsData.pending.map(task => (
                     <div key={task.id} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-                        <div>
-                            <p className="font-semibold">{task.title}</p>
-                            <p className="text-sm text-red-600">Due: {task.dueDate}</p>
-                        </div>
+                        <div><p className="font-semibold">{task.title}</p><p className="text-sm text-red-600">Due: {task.dueDate}</p></div>
                         <span className="text-sm font-medium bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full">{task.points} Points</span>
                     </div>
                  ))}
@@ -249,25 +180,14 @@ const AssignmentsView = () => (
         </Card>
     </div>
 );
-
 const DoubtsView = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
             <Card>
                  <h2 className="font-bold text-xl mb-4">Ask a New Doubt</h2>
                  <div className="space-y-4">
-                     <div>
-                         <label className="text-sm font-medium text-gray-700">Subject</label>
-                         <select className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
-                             <option>Calculus</option>
-                             <option>Data Structures</option>
-                             <option>Statistics</option>
-                         </select>
-                     </div>
-                      <div>
-                         <label className="text-sm font-medium text-gray-700">Your Question</label>
-                        <textarea rows="5" className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Type your question here..."></textarea>
-                     </div>
+                     <div><label className="text-sm font-medium text-gray-700">Subject</label><select className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>Calculus</option><option>Data Structures</option><option>Statistics</option></select></div>
+                      <div><label className="text-sm font-medium text-gray-700">Your Question</label><textarea rows="5" className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Type your question here..."></textarea></div>
                      <button className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Submit Question</button>
                  </div>
             </Card>
@@ -278,15 +198,8 @@ const DoubtsView = () => (
                 <div className="space-y-4">
                     {doubtsData.map(doubt => (
                         <details key={doubt.id} className="bg-gray-50 p-4 rounded-lg group">
-                            <summary className="font-semibold cursor-pointer flex justify-between items-center">
-                                {doubt.question}
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${doubt.status === 'Answered' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>{doubt.status}</span>
-                            </summary>
-                            {doubt.answer && (
-                                <div className="mt-3 pt-3 border-t text-gray-700">
-                                    <p><strong className="font-semibold">Answer:</strong> {doubt.answer}</p>
-                                </div>
-                            )}
+                            <summary className="font-semibold cursor-pointer flex justify-between items-center">{doubt.question}<span className={`text-xs font-bold px-2 py-1 rounded-full ${doubt.status === 'Answered' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>{doubt.status}</span></summary>
+                            {doubt.answer && (<div className="mt-3 pt-3 border-t text-gray-700"><p><strong className="font-semibold">Answer:</strong> {doubt.answer}</p></div>)}
                         </details>
                     ))}
                 </div>
@@ -295,15 +208,30 @@ const DoubtsView = () => (
     </div>
 );
 
-
 // --- Main App Structure ---
 export default function StudentDashboard({ onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isScannerOpen, setScannerOpen] = useState(false);
-    const [attendanceStatus, setAttendanceStatus] = useState('Not Marked for "Advanced Calculus"');
+    const [attendanceStatus, setAttendanceStatus] = useState('No active session.');
 
-    const handleScanSuccess = () => {
-        setAttendanceStatus('Marked Present for "Advanced Calculus"');
+    useEffect(() => {
+        const channel = new BroadcastChannel('shikshashelf_attendance');
+        channel.onmessage = (msg) => {
+            if (msg.type === 'SESSION_START') {
+                setAttendanceStatus(`Scanning for Session ${msg.sessionId.slice(-5)}...`);
+                setTimeout(() => {
+                    setAttendanceStatus(`Attendance Marked for Session ${msg.sessionId.slice(-5)} ✅`);
+                }, 2000);
+            }
+        };
+        return () => { channel.close(); };
+    }, []);
+
+    const handleScanSuccess = (decodedText) => {
+        try {
+            const data = JSON.parse(decodedText);
+            setAttendanceStatus(`Marked Present for "${data.class}" ✅`);
+        } catch (e) { setAttendanceStatus("Invalid QR Code Scanned!"); }
         setScannerOpen(false);
     };
 
@@ -331,17 +259,15 @@ export default function StudentDashboard({ onLogout }) {
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
             <aside className="w-20 lg:w-64 bg-gray-800 text-white flex flex-col transition-all duration-300">
-                <div className="h-20 flex items-center justify-center text-2xl font-bold">
-                    <span className="lg:hidden">S</span>
-                    <span className="hidden lg:inline">ShikshaShelf</span>
-                </div>
+                <button onClick={() => setActiveTab('dashboard')} className="h-20 w-full flex items-center justify-center p-2 transition-opacity duration-200 hover:opacity-80">
+                    <img src={logo} alt="E-Shiksha Logo" className="h-60 w-auto" />
+                </button>
                 <nav className="flex-1 px-2 lg:px-4 py-4">
                     {navItems.map(item => (
                         <button key={item.id} onClick={() => setActiveTab(item.id)} title={item.label}
                             className={`w-full flex items-center justify-center lg:justify-start px-4 py-3 my-1 rounded-lg transition-colors duration-200 ${
                                 activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                            }`}
-                        >
+                            }`}>
                             <span className="lg:mr-3">{item.icon}</span>
                             <span className="hidden lg:inline">{item.label}</span>
                         </button>
@@ -354,7 +280,10 @@ export default function StudentDashboard({ onLogout }) {
                         <h1 className="text-xl font-bold text-gray-800">Student Dashboard</h1>
                         <p className="text-gray-500 text-sm">{studentUser.name} | {studentUser.goal}</p>
                     </div>
-                     <button onClick={onLogout} className="text-gray-500 hover:text-red-600" title="Log Out"><LogOutIcon /></button>
+                     <div className="flex items-center space-x-4">
+                        <div className={`text-sm font-semibold transition-opacity duration-300 ${attendanceStatus.includes("Marked") ? 'text-green-600' : 'text-gray-500'}`}>{attendanceStatus}</div>
+                        <button onClick={onLogout} className="text-gray-500 hover:text-red-600" title="Log Out"><LogOutIcon /></button>
+                    </div>
                 </header>
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-8">
                     {renderContent()}
@@ -364,4 +293,3 @@ export default function StudentDashboard({ onLogout }) {
         </div>
     );
 }
-

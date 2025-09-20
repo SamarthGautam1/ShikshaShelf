@@ -1,4 +1,6 @@
 import React from 'react';
+import logo from '../assets/logo dashboard.png'; 
+
 
 // This is a prop that will be a function passed from App.jsx
 export default function Login({ onLogin }) {
@@ -6,9 +8,10 @@ export default function Login({ onLogin }) {
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">ShikshaShelf</h1>
-          <p className="mt-2 text-gray-500">The Smart Productivity & Attendance App</p>
-        </div>
+                <button onClick={() => setActiveTab('dashboard')} className="h-20 w-full flex items-center justify-center p-2 transition-opacity duration-200 hover:opacity-80">
+                                    <img src={logo} alt="E-Shiksha Logo" className="h-60 w-auto" />
+                                </button>
+          </div>
         <div className="flex flex-col space-y-4">
           <p className="text-center font-semibold text-gray-700">Select your role to login:</p>
           <button

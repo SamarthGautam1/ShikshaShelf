@@ -1,0 +1,31 @@
+# Attendance logs
+attendance_logs/*.csv
+attendance_logs/*.xlsx
+
+# Student photos (for privacy)
+student_photos/*.jpg
+student_photos/*.png
+student_photos/*.jpeg
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

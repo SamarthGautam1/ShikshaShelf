@@ -2,6 +2,8 @@ E-शिक्षा: The Smart Productivity & Attendance App
 
 (Formerly known as ShikshaShelf)
 
+->UI/UX with generated QR code
+
 A comprehensive web application developed for the Smart India Hackathon 2025 (Problem Statement #25011) to solve two of the biggest problems in modern education: teacher inefficiency and wasted student potential.
 
 🎯 About The Project
@@ -93,3 +95,34 @@ npm install recharts react-qr-code html5-qrcode broadcast-channel
 Run the development server:
 
 npm run dev
+
+
+->Face recognition in local machine 
+
+📑How It Works
+The system uses your webcam to detect and recognize faces in real time using deep learning models (dlib and OpenCV).
+Each face detected is compared to the database of student photos.
+When a match is found, attendance is automatically marked with timestamp in a CSV file.
+The interface draws green boxes for recognized faces and red for unknown faces.
+
+⚡ Quick Start / Steps to Run
+Install Python 3.8-3.12 and all dependencies:
+bash
+python -m pip install --upgrade pip
+pip install opencv-python dlib numpy pandas
+Download models:
+Place both shape_predictor_68_face_landmarks.dat &
+dlib_face_recognition_resnet_model_v1.dat in the face_recognition_models folder.
+Add student photos:
+Place clear, front-facing JPG/PNG images in student_photos/.
+Name images like john_doe.jpg.
+Activate your virtual environment (if using one).
+Run the system
+From the smart_attendance_system folder:
+bash
+python gemattendance.py
+Use the interface:
+Faces will be detected and recognized live.
+Attendance will be saved in the attendance_logs directory.
+Press q to quit, s to save current attendance.
+ 

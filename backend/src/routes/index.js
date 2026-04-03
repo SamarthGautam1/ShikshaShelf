@@ -11,9 +11,10 @@ router.get('/health', (_req, res) => {
 
 router.use('/auth', require('./auth'));
 
+router.use('/classes', require('./classes'));
+
 // Future sub-route mounts:
 // router.use('/attendance', require('./attendance'));
-// router.use('/classes', require('./classes'));
 // router.use('/tasks', require('./tasks'));
 // router.use('/resources', require('./resources'));
 

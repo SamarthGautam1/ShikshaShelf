@@ -1,0 +1,88 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Block edits to existing migration files — create a new one instead",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q database/migrations/', {stdio:'pipe'}); console.error('BLOCKED: Never edit existing migration files. Create a new numbered migration file instead.'); process.exit(1); } catch(e) { process.exit(0); }\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Block edits to .env files — only .env.example is allowed",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -qE \\\"\\\\.env$\\\"', {stdio:'pipe'}); console.error('BLOCKED: Never write to .env files. Edit .env.example instead and let the developer fill in real values.'); process.exit(1); } catch(e) { process.exit(0); }\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Block edits to binary model weight files",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -qE \\\"\\\\.dat$|\\\\.h5$|\\\\.pb$|\\\\.tflite$\\\"', {stdio:'pipe'}); console.error('BLOCKED: Never edit binary model weight files (.dat, .h5, .pb, .tflite). These are trained model artifacts.'); process.exit(1); } catch(e) { process.exit(0); }\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Block rewrites of the existing face recognition script — wrap it in Flask, do not rewrite",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q smart_attendance_system/gemattendance', {stdio:'pipe'}); console.error('BLOCKED: Do not rewrite gemattendance.py. This is the existing working script. Wrap it in Flask via app.py instead.'); process.exit(1); } catch(e) { process.exit(0); }\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Auto-fix ESLint errors in frontend JS/JSX files after every edit",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q frontend/', {stdio:'pipe'}); execSync('echo ' + f + ' | grep -qE \\\"\\\\.jsx?$|\\\\.tsx?$\\\"', {stdio:'pipe'}); execSync('cd frontend && npx eslint --fix ' + f.replace('frontend/',''), {stdio:'inherit'}); } catch(e) {}\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Auto-format frontend files with Prettier after every edit",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q frontend/', {stdio:'pipe'}); execSync('echo ' + f + ' | grep -qE \\\"\\\\.jsx?$|\\\\.tsx?$|\\\\.css$\\\"', {stdio:'pipe'}); execSync('cd frontend && npx prettier --write ' + f.replace('frontend/',''), {stdio:'inherit'}); } catch(e) {}\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Auto-fix ESLint errors in backend JS files after every edit",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q backend/', {stdio:'pipe'}); execSync('echo ' + f + ' | grep -qE \\\"\\\\.jsx?$|\\\\.tsx?$\\\"', {stdio:'pipe'}); execSync('cd backend && npx eslint --fix ' + f.replace('backend/',''), {stdio:'inherit'}); } catch(e) {}\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "description": "Auto-format Python files with Black after every edit",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -q ai-service/', {stdio:'pipe'}); execSync('echo ' + f + ' | grep -qE \\\"\\\\.py$\\\"', {stdio:'pipe'}); execSync('python -m black ' + f, {stdio:'inherit'}); } catch(e) {}\""
+          }
+        ]
+      }
+    ]
+  }
+}

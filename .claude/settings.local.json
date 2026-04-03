@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__postgres__query",
-      "Bash(node migrate.js)"
+      "Bash(node migrate.js)",
+      "Bash(gh run:*)"
     ]
   }
 }

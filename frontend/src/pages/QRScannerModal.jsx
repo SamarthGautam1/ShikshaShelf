@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 // --- Re-usable Icon ---
@@ -14,7 +15,7 @@ export default function QRScannerModal({ onClose, onScanSuccess }) {
     }
 
     // This function can be used to handle scan errors
-    function handleScanError(errorMessage) {
+    function handleScanError() {
       // We can ignore errors for this prototype
     }
 
@@ -56,4 +57,9 @@ export default function QRScannerModal({ onClose, onScanSuccess }) {
     </div>
   );
 }
+
+QRScannerModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onScanSuccess: PropTypes.func.isRequired,
+};
 

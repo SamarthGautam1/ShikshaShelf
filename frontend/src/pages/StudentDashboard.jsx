@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import QRScannerModal from './QRScannerModal.jsx';
 import { BroadcastChannel } from 'broadcast-channel';
@@ -27,6 +28,7 @@ const doubtsData = [ { id: 1, question: 'Can you explain the difference between 
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
+Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
 const DashboardView = ({ setScannerOpen }) => {
@@ -84,6 +86,7 @@ const DashboardView = ({ setScannerOpen }) => {
         </div>
     );
 };
+DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired };
 const AttendanceView = () => {
     const { attended, total } = studentUser.attendance;
     const absent = total - attended;
@@ -231,7 +234,7 @@ export default function StudentDashboard({ onLogout }) {
         try {
             const data = JSON.parse(decodedText);
             setAttendanceStatus(`Marked Present for "${data.class}" ✅`);
-        } catch (e) { setAttendanceStatus("Invalid QR Code Scanned!"); }
+        } catch { setAttendanceStatus("Invalid QR Code Scanned!"); }
         setScannerOpen(false);
     };
 
@@ -293,3 +296,7 @@ export default function StudentDashboard({ onLogout }) {
         </div>
     );
 }
+
+StudentDashboard.propTypes = {
+  onLogout: PropTypes.func.isRequired,
+};

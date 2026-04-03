@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import logo from '../assets/logo dashboard.png'; 
 
 // --- Helper Components & Icons ---
@@ -39,6 +40,7 @@ const academicCalendar = [
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
+Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
 const DashboardView = () => (
@@ -195,3 +197,7 @@ export default function AdminDashboard({ onLogout }) {
         </div>
     );
 }
+
+AdminDashboard.propTypes = {
+  onLogout: PropTypes.func.isRequired,
+};

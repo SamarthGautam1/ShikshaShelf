@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 // --- Helper Components & Icons (Inlined for single-file compatibility) ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -8,7 +9,6 @@ const FileTextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" he
 const UsersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const MessageSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
 const AlertTriangleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;
-const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>;
 const LogOutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
 // --- MOCK DATA ---
 const teacherUser = { name: 'Mrs. Anjali Desai', subject: 'Physics Teacher' };
@@ -47,6 +47,7 @@ const Card = ({ children, className }) => (
         {children}
     </div>
 );
+Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- MAIN COMPONENTS ---
 const Sidebar = ({ activeTab, setActiveTab }) => {
@@ -75,6 +76,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         </aside>
     );
 };
+Sidebar.propTypes = { activeTab: PropTypes.string.isRequired, setActiveTab: PropTypes.func.isRequired };
 
 const Header = ({ user, onLogout }) => (
     <header className="bg-white h-20 shadow-md flex items-center justify-between px-8">
@@ -96,6 +98,7 @@ const Header = ({ user, onLogout }) => (
         </div>
     </header>
 );
+Header.propTypes = { user: PropTypes.shape({ name: PropTypes.string.isRequired, subject: PropTypes.string }).isRequired, onLogout: PropTypes.func.isRequired };
 
 const DashboardView = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -115,7 +118,7 @@ const DashboardView = () => (
                 </Card>
             </div>
             <Card>
-                <h2 className="font-bold text-lg mb-4">Today's Schedule</h2>
+                <h2 className="font-bold text-lg mb-4">Today&apos;s Schedule</h2>
                 <ul className="space-y-3">
                     {dashboardData.schedule.map(item => (
                         <li key={item.time} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
@@ -283,3 +286,7 @@ export default function TeacherDashboard({ onLogout }) {
         </div>
     );
 }
+
+TeacherDashboard.propTypes = {
+  onLogout: PropTypes.func.isRequired,
+};

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Login from './pages/Login.jsx';
 import StudentDashboard from './pages/StudentDashboard.jsx';
 import TeacherDashboard from './pages/TeacherDashboard.jsx';

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BroadcastChannel } from 'broadcast-channel';
 import logo from '../assets/logo dashboard.png'; 
 
@@ -49,6 +50,7 @@ const insightsData = {
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
+Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
 
@@ -77,7 +79,7 @@ const DashboardView = ({ setActiveTab }) => (
                 </div>
             </Card>
              <Card>
-                <h2 className="font-bold text-lg mb-4">Today's Schedule</h2>
+                <h2 className="font-bold text-lg mb-4">Today&apos;s Schedule</h2>
                 <p className="text-gray-500">Your scheduled classes for today will appear here.</p>
             </Card>
         </div>
@@ -95,6 +97,7 @@ const DashboardView = ({ setActiveTab }) => (
         </Card>
     </div>
 );
+DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired };
 
 const AttendanceView = () => {
     const [mode, setMode] = useState(null);
@@ -318,3 +321,6 @@ export default function TeacherDashboard({ onLogout }) {
     );
 }
 
+TeacherDashboard.propTypes = {
+  onLogout: PropTypes.func.isRequired,
+};

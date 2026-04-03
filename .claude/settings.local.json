@@ -3,7 +3,10 @@
     "allow": [
       "mcp__postgres__query",
       "Bash(node migrate.js)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

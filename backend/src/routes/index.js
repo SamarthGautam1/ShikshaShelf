@@ -9,8 +9,9 @@ router.get('/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok' } });
 });
 
+router.use('/auth', require('./auth'));
+
 // Future sub-route mounts:
-// router.use('/auth', require('./auth'));
 // router.use('/attendance', require('./attendance'));
 // router.use('/classes', require('./classes'));
 // router.use('/tasks', require('./tasks'));

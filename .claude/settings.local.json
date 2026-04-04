@@ -7,7 +7,12 @@
       "Bash(cp:*)",
       "Bash(npm install:*)",
       "Bash(npm run:*)",
-      "Bash(ls backend/src/db.*)"
+      "Bash(ls backend/src/db.*)",
+      "Bash(npx eslint:*)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Read(//c/Program Files/PostgreSQL//**)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Bash(PGPASSWORD=postgres /c/Program Files/PostgreSQL/17/bin/psql.exe:*)"
     ]
   }
 }

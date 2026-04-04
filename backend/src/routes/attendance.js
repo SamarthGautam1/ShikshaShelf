@@ -6,12 +6,15 @@ const authMiddleware = require('../middleware/auth');
 
 const router = Router();
 
+/** QR token expiry — 30 seconds */
+const QR_EXPIRY_MS = 30 * 1000;
+
 // All attendance routes require authentication
 router.use(authMiddleware);
 
 /**
  * POST /api/attendance/qr/generate
- * Teacher or admin generates a QR token for a class. Expires in 30 seconds.
+ * Teacher or admin generates a QR token for a class. Token expires after 30 seconds.
  */
 router.post(
   '/qr/generate',
@@ -36,7 +39,7 @@ router.post(
       }
 
       const token = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 30 * 1000); // 30 seconds
+      const expiresAt = new Date(Date.now() + QR_EXPIRY_MS);
 
       const result = await db.query(
         `INSERT INTO qr_tokens (class_id, token, created_by, expires_at)
@@ -108,13 +111,15 @@ router.post(
         return res.status(409).json({ success: false, error: 'Attendance already marked for today' });
       }
 
-      // Emit socket event
+      // Look up the student name for the real-time event
+      const studentRow = await db.query('SELECT name FROM users WHERE id = $1', [req.user.id]);
+      const studentName = studentRow.rows.length > 0 ? studentRow.rows[0].name : 'Unknown';
+
+      // Emit socket event to the teacher's attendance room
       const io = req.app.get('io');
-      io.emit('attendance:marked', {
-        student_id: req.user.id,
-        class_id: qrToken.class_id,
-        method: 'qr',
-        marked_at: attendance.rows[0].marked_at,
+      io.to(`attendance:${qrToken.class_id}`).emit('attendance:marked', {
+        studentName,
+        markedAt: attendance.rows[0].marked_at,
       });
 
       res.status(201).json({ success: true, data: attendance.rows[0] });

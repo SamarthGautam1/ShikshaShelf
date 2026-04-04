@@ -143,7 +143,8 @@ const ReportsView = () => (
 
 
 // --- Main App Structure ---
-export default function AdminDashboard({ onLogout }) {
+// eslint-disable-next-line no-unused-vars -- token will be used when real API calls are wired up
+export default function AdminDashboard({ token, user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const navItems = [
         { id: 'dashboard', icon: <HomeIcon />, label: 'Dashboard' },
@@ -184,7 +185,7 @@ export default function AdminDashboard({ onLogout }) {
                 <header className="bg-white h-20 shadow-md flex-shrink-0 flex items-center justify-between px-8">
                     <div>
                         <h1 className="text-xl font-bold text-gray-800">Administrator Dashboard</h1>
-                        <p className="text-gray-500 text-sm">{adminUser.name}</p>
+                        <p className="text-gray-500 text-sm">{user?.name || adminUser.name}</p>
                     </div>
                      <button onClick={onLogout} className="text-gray-500 hover:text-red-600" title="Log Out"><LogOutIcon /></button>
                 </header>
@@ -199,5 +200,7 @@ export default function AdminDashboard({ onLogout }) {
 }
 
 AdminDashboard.propTypes = {
+  token: PropTypes.string.isRequired,
+  user: PropTypes.object.isRequired,
   onLogout: PropTypes.func.isRequired,
 };

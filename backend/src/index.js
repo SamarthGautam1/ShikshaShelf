@@ -7,19 +7,21 @@ const http = require('http');
 const { Server } = require('socket.io');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
+const registerSocketHandlers = require('./socket');
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:5173',
+    origin: true,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
 app.use(helmet());
-app.use(cors({ origin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:5173' }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.use('/api', routes);
@@ -29,15 +31,9 @@ app.use(errorHandler);
 // Make io accessible to route handlers via req.app
 app.set('io', io);
 
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
-
-  socket.on('disconnect', () => {
-    console.log(`Socket disconnected: ${socket.id}`);
-  });
-});
+registerSocketHandlers(io);
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });

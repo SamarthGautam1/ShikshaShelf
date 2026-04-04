@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { BroadcastChannel } from 'broadcast-channel';
-import logo from '../assets/logo dashboard.png'; 
+import logo from '../assets/logo dashboard.png';
+import { generateQRToken } from '../api/attendance.js';
+import { getTeacherClasses } from '../api/classes.js';
+import useAttendanceSocket from '../hooks/useAttendanceSocket.js';
 
 // --- Helper Components & Icons ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -23,10 +25,6 @@ const teacherUser = { name: 'Anjali Desai', subject: 'Advanced Mathematics' };
 const atRiskStudents = [
     { name: 'Rohan Sharma', reason: 'Attendance dropped by 20% this month.' },
     { name: 'Priya Singh', reason: 'Has not completed any suggested tasks in 2 weeks.' },
-];
-const attendanceData = [
-    { id: 101, name: 'Aarav Patel', status: 'Present' }, { id: 102, name: 'Diya Mehta', status: 'Present' },
-    { id: 103, name: 'Rohan Sharma', status: 'Absent' }, { id: 104, name: 'Vihaan Joshi', status: 'Present' },
 ];
 const assignmentsData = [
     { id: 1, title: 'Calculus Problem Set 4', class: 'B.Sc Sem III', due: '2025-09-20', submissions: '35/41' },
@@ -99,52 +97,212 @@ const DashboardView = ({ setActiveTab }) => (
 );
 DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired };
 
-const AttendanceView = () => {
+const AttendanceView = ({ token }) => {
+    const [selectedClassId, setSelectedClassId] = useState('');
+    const [sessionActive, setSessionActive] = useState(false);
+    const [qrToken, setQrToken] = useState('');
+    const [qrError, setQrError] = useState('');
+    const [qrLoading, setQrLoading] = useState(false);
     const [mode, setMode] = useState(null);
-    const [qrValue, setQrValue] = useState('');
-    const channel = new BroadcastChannel('shikshashelf_attendance');
+    const [classes, setClasses] = useState([]);
+    const [classesLoading, setClassesLoading] = useState(true);
+    const [classesError, setClassesError] = useState('');
 
-    const startQR = () => {
-        setMode('qr');
-        const sessionData = { class: 'B.Sc Sem III', sessionId: `SESS_${Date.now()}` };
-        setQrValue(JSON.stringify(sessionData));
-        // Send the session ID to any listening student dashboards
-        channel.postMessage({ type: 'SESSION_START', sessionId: sessionData.sessionId });
+    useEffect(() => {
+        let cancelled = false;
+        setClassesLoading(true);
+        setClassesError('');
+        getTeacherClasses(token)
+            .then((data) => {
+                if (!cancelled) setClasses(data);
+            })
+            .catch((err) => {
+                if (!cancelled) setClassesError(err.message || 'Failed to load classes.');
+            })
+            .finally(() => {
+                if (!cancelled) setClassesLoading(false);
+            });
+        return () => { cancelled = true; };
+    }, [token]);
+
+    // Socket hook — only connects when sessionActive and classId are set
+    const activeClassId = sessionActive ? selectedClassId : null;
+    const { attendees, isConnected } = useAttendanceSocket(activeClassId, token);
+
+    /**
+     * Start a QR attendance session: generate a token via the API,
+     * then display the QR code and activate the socket connection.
+     */
+    const startQRSession = async () => {
+        if (!selectedClassId) return;
+        console.log('Starting QR session — classId:', selectedClassId);
+        setQrError('');
+        setQrLoading(true);
+        try {
+            const data = await generateQRToken(selectedClassId, token);
+            if (data.success && data.data?.token) {
+                setQrToken(data.data.token);
+                setMode('qr');
+                setSessionActive(true);
+            } else {
+                setQrError(data.error || 'Failed to generate QR token.');
+            }
+        } catch {
+            setQrError('Could not connect to the server. Please try again.');
+        } finally {
+            setQrLoading(false);
+        }
     };
-    const startFace = () => setMode('face');
+
+    const startFace = () => {
+        if (!selectedClassId) return;
+        setMode('face');
+        setSessionActive(true);
+    };
+
+    const stopSession = () => {
+        setMode(null);
+        setSessionActive(false);
+        setQrToken('');
+        setQrError('');
+    };
+
+    /**
+     * Format an ISO timestamp or date string into a readable time.
+     * @param {string} dateStr
+     * @returns {string}
+     */
+    const formatTime = (dateStr) => {
+        try {
+            return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const selectedLabel = classes.find((c) => c.id === selectedClassId)?.name || '';
+
     return (
         <Card>
             <h2 className="font-bold text-xl mb-4">Attendance Hub</h2>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-gray-50 p-4 rounded-lg">
                 <div>
                     <label htmlFor="class-select" className="block text-sm font-medium text-gray-700">Select Class</label>
-                    <select id="class-select" className="mt-1 p-2 border rounded-md"><option>B.Sc Physics - Semester III</option><option>M.Sc Physics - Semester I</option></select>
+                    <select
+                        id="class-select"
+                        className="mt-1 p-2 border rounded-md"
+                        value={selectedClassId}
+                        onChange={(e) => setSelectedClassId(e.target.value)}
+                        disabled={sessionActive || classesLoading}
+                    >
+                        {classesLoading ? (
+                            <option value="">Loading classes...</option>
+                        ) : classesError ? (
+                            <option value="">-- Failed to load classes --</option>
+                        ) : (
+                            <>
+                                <option value="">-- Choose a class --</option>
+                                {classes.map((cls) => (
+                                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                                ))}
+                            </>
+                        )}
+                    </select>
+                    {classesError && (
+                        <p className="mt-1 text-sm text-red-600">{classesError}</p>
+                    )}
                 </div>
-                {!mode ? (
+                {!sessionActive ? (
                     <div className="flex space-x-4 mt-4 sm:mt-0">
-                        <button onClick={startQR} className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center hover:bg-blue-700"><QrCodeIcon className="mr-2"/>Start QR Session</button>
-                        <button onClick={startFace} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg flex items-center hover:bg-purple-700"><CameraIcon className="mr-2"/>Start Camera Scan</button>
+                        <button
+                            onClick={startQRSession}
+                            disabled={!selectedClassId || qrLoading}
+                            className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <QrCodeIcon className="mr-2" />
+                            {qrLoading ? 'Generating...' : 'Start QR Session'}
+                        </button>
+                        <button
+                            onClick={startFace}
+                            disabled={!selectedClassId}
+                            className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg flex items-center hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <CameraIcon className="mr-2" />Start Camera Scan
+                        </button>
                     </div>
                 ) : (
-                    <button onClick={() => setMode(null)} className="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 mt-4 sm:mt-0">End Session</button>
+                    <button onClick={stopSession} className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 mt-4 sm:mt-0">
+                        Stop Attendance
+                    </button>
                 )}
             </div>
-            {mode === 'qr' && (
-                <div className="text-center p-6 bg-gray-100 rounded-lg"><h3 className="font-semibold mb-4">Project this QR Code for students to scan.</h3><div className="bg-white p-4 inline-block rounded-lg shadow-lg"><QRCode value={qrValue} size={200} /></div></div>
+
+            {qrError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {qrError}
+                </div>
             )}
+
+            {mode === 'qr' && qrToken && (
+                <div className="text-center p-6 bg-gray-100 rounded-lg">
+                    <h3 className="font-semibold mb-4">Project this QR Code for students to scan.</h3>
+                    <div className="bg-white p-4 inline-block rounded-lg shadow-lg">
+                        <QRCode value={JSON.stringify({ token: qrToken, class_id: selectedClassId })} size={200} />
+                    </div>
+                    <div className="mt-3 flex items-center justify-center space-x-2">
+                        <span className={`inline-block w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        <span className="text-sm text-gray-600">
+                            {isConnected ? 'Live -- listening for scans' : 'Connecting to server...'}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {mode === 'face' && (
-                <div className="text-center p-6 bg-gray-100 rounded-lg"><h3 className="font-semibold mb-4">Facial Recognition Scan Active</h3><div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center text-white">(Live camera feed placeholder for prototype)</div></div>
+                <div className="text-center p-6 bg-gray-100 rounded-lg">
+                    <h3 className="font-semibold mb-4">Facial Recognition Scan Active</h3>
+                    <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center text-white">
+                        (Live camera feed placeholder for prototype)
+                    </div>
+                    <div className="mt-3 flex items-center justify-center space-x-2">
+                        <span className={`inline-block w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        <span className="text-sm text-gray-600">
+                            {isConnected ? 'Live -- listening for recognitions' : 'Connecting to server...'}
+                        </span>
+                    </div>
+                </div>
             )}
-            {mode && (
-                <div className="mt-6"><h3 className="font-bold text-lg mb-4">Live Roster - B.Sc Physics - Semester III</h3><div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {attendanceData.map(student => (
-                        <div key={student.id} className={`p-3 rounded-lg text-center border-2 ${student.status === 'Present' ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}><p className="font-semibold text-sm">{student.name}</p><p className={`text-xs font-bold ${student.status === 'Present' ? 'text-green-800' : 'text-red-800'}`}>{student.status}</p></div>
-                    ))}
-                </div></div>
+
+            {sessionActive && (
+                <div className="mt-6">
+                    <h3 className="font-bold text-lg mb-4">
+                        Live Roster - {selectedLabel}
+                        <span className="ml-3 text-sm font-normal text-gray-500">
+                            ({attendees.length} student{attendees.length !== 1 ? 's' : ''} marked)
+                        </span>
+                    </h3>
+                    {attendees.length === 0 ? (
+                        <p className="text-gray-400 text-sm">Waiting for students to scan...</p>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {attendees.map((entry, index) => (
+                                <div
+                                    key={`${entry.studentName}-${index}`}
+                                    className="p-3 rounded-lg text-center border-2 bg-green-100 border-green-300"
+                                >
+                                    <p className="font-semibold text-sm">{entry.studentName}</p>
+                                    <p className="text-xs font-bold text-green-800">{formatTime(entry.markedAt)}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
         </Card>
     );
 };
+
+AttendanceView.propTypes = { token: PropTypes.string.isRequired };
 
 const AssignmentsView = () => (
      <Card>
@@ -261,7 +419,7 @@ const CommunicationView = () => (
 );
 
 // --- Main App Structure ---
-export default function TeacherDashboard({ onLogout }) {
+export default function TeacherDashboard({ token, user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const navItems = [
@@ -277,7 +435,7 @@ export default function TeacherDashboard({ onLogout }) {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return <DashboardView setActiveTab={setActiveTab} />;
-            case 'attendance': return <AttendanceView />;
+            case 'attendance': return <AttendanceView token={token} />;
             case 'assignments': return <AssignmentsView />;
             case 'insights': return <InsightsView />;
             case 'content': return <ContentView />;
@@ -309,7 +467,7 @@ export default function TeacherDashboard({ onLogout }) {
                 <header className="bg-white h-20 shadow-md flex-shrink-0 flex items-center justify-between px-8">
                     <div>
                         <h1 className="text-xl font-bold text-gray-800">Teacher Dashboard</h1>
-                        <p className="text-gray-500 text-sm">{teacherUser.name} | {teacherUser.subject}</p>
+                        <p className="text-gray-500 text-sm">{user?.name || teacherUser.name} | {teacherUser.subject}</p>
                     </div>
                      <button onClick={onLogout} className="text-gray-500 hover:text-red-600" title="Log Out"><LogOutIcon /></button>
                 </header>
@@ -322,5 +480,7 @@ export default function TeacherDashboard({ onLogout }) {
 }
 
 TeacherDashboard.propTypes = {
+  token: PropTypes.string.isRequired,
+  user: PropTypes.object.isRequired,
   onLogout: PropTypes.func.isRequired,
 };

@@ -12,7 +12,11 @@ export async function login(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Login failed. Please check your credentials.');
+  }
+  return data;
 }
 
 /**

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import QRScannerModal from './QRScannerModal.jsx';
+import { scanQRToken } from '../api/attendance.js';
 import { BroadcastChannel } from 'broadcast-channel';
 import logo from '../assets/logo dashboard.png'; 
 
@@ -212,7 +213,8 @@ const DoubtsView = () => (
 );
 
 // --- Main App Structure ---
-export default function StudentDashboard({ onLogout }) {
+// eslint-disable-next-line no-unused-vars -- token will be used when real API calls are wired up
+export default function StudentDashboard({ token, user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isScannerOpen, setScannerOpen] = useState(false);
     const [attendanceStatus, setAttendanceStatus] = useState('No active session.');
@@ -230,11 +232,22 @@ export default function StudentDashboard({ onLogout }) {
         return () => { channel.close(); };
     }, []);
 
-    const handleScanSuccess = (decodedText) => {
+    const handleScanSuccess = async (parsed) => {
+        if (!parsed || !parsed.token || !parsed.class_id) {
+            setAttendanceStatus('Invalid QR Code Scanned!');
+            setScannerOpen(false);
+            return;
+        }
         try {
-            const data = JSON.parse(decodedText);
-            setAttendanceStatus(`Marked Present for "${data.class}" ✅`);
-        } catch { setAttendanceStatus("Invalid QR Code Scanned!"); }
+            const result = await scanQRToken(parsed.token, parsed.class_id, token);
+            if (result.success) {
+                setAttendanceStatus('Attendance Marked Successfully!');
+            } else {
+                setAttendanceStatus(result.error || 'Failed to mark attendance.');
+            }
+        } catch {
+            setAttendanceStatus('Could not connect to the server.');
+        }
         setScannerOpen(false);
     };
 
@@ -281,7 +294,7 @@ export default function StudentDashboard({ onLogout }) {
                 <header className="bg-white h-20 shadow-md flex-shrink-0 flex items-center justify-between px-8">
                     <div>
                         <h1 className="text-xl font-bold text-gray-800">Student Dashboard</h1>
-                        <p className="text-gray-500 text-sm">{studentUser.name} | {studentUser.goal}</p>
+                        <p className="text-gray-500 text-sm">{user?.name || studentUser.name} | {studentUser.goal}</p>
                     </div>
                      <div className="flex items-center space-x-4">
                         <div className={`text-sm font-semibold transition-opacity duration-300 ${attendanceStatus.includes("Marked") ? 'text-green-600' : 'text-gray-500'}`}>{attendanceStatus}</div>
@@ -298,5 +311,7 @@ export default function StudentDashboard({ onLogout }) {
 }
 
 StudentDashboard.propTypes = {
+  token: PropTypes.string.isRequired,
+  user: PropTypes.object.isRequired,
   onLogout: PropTypes.func.isRequired,
 };

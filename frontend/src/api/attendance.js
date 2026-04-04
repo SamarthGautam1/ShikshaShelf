@@ -13,7 +13,7 @@ export async function generateQRToken(classId, token) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ classId }),
+    body: JSON.stringify({ class_id: classId }),
   });
   return res.json();
 }
@@ -21,17 +21,18 @@ export async function generateQRToken(classId, token) {
 /**
  * Scan (validate) a QR token to mark attendance.
  * @param {string} qrToken - The scanned QR token string.
+ * @param {string} classId - The class ID associated with the QR session.
  * @param {string} authToken - JWT auth token.
  * @returns {Promise<object>} Response confirming attendance was recorded.
  */
-export async function scanQRToken(qrToken, authToken) {
+export async function scanQRToken(qrToken, classId, authToken) {
   const res = await fetch(`${BASE_URL}/api/attendance/qr/scan`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${authToken}`,
     },
-    body: JSON.stringify({ token: qrToken }),
+    body: JSON.stringify({ token: qrToken, class_id: classId }),
   });
   return res.json();
 }

@@ -6,7 +6,8 @@
       "Bash(gh run:*)",
       "Bash(cp:*)",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls backend/src/db.*)"
     ]
   }
 }

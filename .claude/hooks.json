@@ -16,8 +16,8 @@
         "hooks": [
           {
             "type": "command",
-            "description": "Block edits to .env files — only .env.example is allowed",
-            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -qE \\\"\\\\.env$\\\"', {stdio:'pipe'}); console.error('BLOCKED: Never write to .env files. Edit .env.example instead and let the developer fill in real values.'); process.exit(1); } catch(e) { process.exit(0); }\""
+            "description": "Block edits to .env files — secrets must never be written by Claude",
+            "command": "node -e \"const f=process.env.CLAUDE_TOOL_INPUT_FILE||''; const {execSync}=require('child_process'); try { execSync('echo ' + f + ' | grep -qE \\\"\\\\.env$\\\"', {stdio:'pipe'}); console.error('BLOCKED: Never write to .env files. These contain secrets and must be managed manually by the developer.'); process.exit(1); } catch(e) { process.exit(0); }\""
           }
         ]
       },

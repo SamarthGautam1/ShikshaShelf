@@ -17,7 +17,10 @@
       "Bash(ls \"C:/Program Files/PostgreSQL/\"*/bin/psql.exe)",
       "Read(//c/Program Files \\(x86\\)/**)",
       "Bash(PGPASSWORD=postgres C:/Program Files/PostgreSQL/17/bin/psql.exe:*)",
-      "Bash(C:/Program Files/PostgreSQL/17/bin/psql.exe:*)"
+      "Bash(C:/Program Files/PostgreSQL/17/bin/psql.exe:*)",
+      "Skill(claude-api)",
+      "Bash(rm -f .graphify_detect.json .graphify_extract.json .graphify_ast.json .graphify_semantic.json .graphify_analysis.json .graphify_labels.json .graphify_python)",
+      "Bash(rm -f graphify-out/.graphify_chunk_01.json graphify-out/.graphify_chunk_02.json)"
     ]
   }
 }

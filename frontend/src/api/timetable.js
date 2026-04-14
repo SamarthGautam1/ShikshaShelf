@@ -17,3 +17,21 @@ export async function getTodayTimetable(token) {
   }
   return body.data;
 }
+
+/**
+ * Fetch AI-generated task suggestions for the student's free periods today.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<object>} Response containing suggestions array.
+ */
+export async function getTodaySuggestions(token) {
+  const res = await fetch(`${BASE_URL}/api/tasks/suggestions`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || 'Failed to fetch suggestions');
+  }
+  return body.data;
+}

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import QRScannerModal from './QRScannerModal.jsx';
 import { scanQRToken } from '../api/attendance.js';
-import { getTodayTimetable } from '../api/timetable.js';
+import { getTodayTimetable, getTodaySuggestions } from '../api/timetable.js';
 import { BroadcastChannel } from 'broadcast-channel';
 import logo from '../assets/logo dashboard.png'; 
 
@@ -22,7 +22,6 @@ const QrCodeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 // --- MOCK DATA ---
 const studentUser = { name: 'Aarav Mehta', goal: 'Career Goal: Data Scientist', attendance: { percentage: 92, total: 200, attended: 184 }};
 const FALLBACK_SCHEDULE = [ { time: '09:00 - 10:00', type: 'class', title: 'Advanced Calculus', location: 'Room 301' }, { time: '10:00 - 11:00', type: 'class', title: 'Data Structures', location: 'Lab 5' }, { time: '11:00 - 01:00', type: 'free', title: 'Free Period', location: 'Campus' }, { time: '01:00 - 02:00', type: 'break', title: 'Lunch Break', location: 'Cafeteria' }, { time: '02:00 - 04:00', type: 'free', title: 'Free Period', location: 'Campus' },];
-const suggestedTasks = [ { id: 1, period: '11:00 - 01:00', title: 'Complete Python for Data Science Module 3', reason: 'Aligns with your Data Scientist goal.', duration: "45 min" }, { id: 2, period: '11:00 - 01:00', title: 'Review "Derivatives" on Khan Academy', reason: 'You scored 55% on the last Calculus quiz.', duration: "30 min" }, { id: 3, period: '02:00 - 04:00', title: 'Practice 5 problems on LeetCode (Easy)', reason: 'Builds foundational coding skills.', duration: "60 min" },];
 const performanceData = { scores: [ { subject: 'Calculus', score: 55, grade: 'C' }, { subject: 'Data Structures', score: 88, grade: 'A' }, { subject: 'Statistics', score: 75, grade: 'B' }, { subject: 'English', score: 95, grade: 'A+' }, ]};
 const resourcesData = [ { type: 'Notes', title: 'Lecture Notes: Big O Notation', subject: 'Data Structures', link: '#' }, { type: 'External', title: 'Khan Academy: Derivatives Introduction', subject: 'Calculus', link: '#' }, { type: 'Notes', title: 'Guide to Statistical Models', subject: 'Statistics', link: '#' },];
 const assignmentsData = { gamification: { streak: 5, points: 1250 }, pending: [ { id: 1, title: 'Data Structures: Linked List Implementation', dueDate: '2025-09-18', points: 100 }, { id: 2, title: 'Calculus Problem Set 4', dueDate: '2025-09-20', points: 75 }, ], quizzes: [ { id: 1, title: 'Quiz: Probability Basics', subject: 'Statistics', attempts: '1/2' }, ]};
@@ -33,7 +32,7 @@ const Card = ({ children, className }) => <div className={`bg-white rounded-xl s
 Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
-const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading }) => {
+const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading, suggestions }) => {
     if (scheduleLoading) {
         return (
             <div className="flex items-center justify-center py-20">
@@ -47,8 +46,9 @@ const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading }) => {
     const mergedSchedule = scheduleData.map(item => {
         const itemWithIcon = { ...item, icon: item.type === 'class' ? <BookOpenIcon/> : <ClockIcon/> };
         if (item.type === 'free') {
-            const tasksForPeriod = suggestedTasks.filter(task => task.period === item.time);
-            return { ...itemWithIcon, tasks: tasksForPeriod };
+            const itemStart = (item.start_time || '').slice(0, 5);
+            const matched = suggestions.find(s => (s.start_time || '').slice(0, 5) === itemStart);
+            return { ...itemWithIcon, tasks: matched ? matched.tasks : [] };
         }
         return itemWithIcon;
     });
@@ -72,23 +72,27 @@ const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading }) => {
                         <div className="flex-1">
                             <h3 className="font-bold text-gray-800">{item.title}</h3>
                             <p className="text-sm text-gray-500">{item.location}</p>
-                            {item.tasks && item.tasks.length > 0 && (
+                            {item.type === 'free' && (
                                 <div className="mt-3 space-y-3">
                                     <h4 className="font-semibold text-xs text-green-700 uppercase tracking-wider">Suggested Productive Tasks:</h4>
-                                    {item.tasks.map(task => (
-                                        <div key={task.id} className="bg-green-50 p-3 rounded-lg border border-green-200">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex items-start space-x-3">
-                                                    <div className="text-green-600 pt-1"><TargetIcon/></div>
-                                                    <div>
-                                                        <p className="font-semibold text-gray-700">{task.title}</p>
-                                                        <p className="text-xs text-gray-500 italic mt-1">{task.reason}</p>
+                                    {item.tasks && item.tasks.length > 0 ? (
+                                        item.tasks.map((task, idx) => (
+                                            <div key={idx} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex items-start space-x-3">
+                                                        <div className="text-green-600 pt-1"><TargetIcon/></div>
+                                                        <div>
+                                                            <p className="font-semibold text-gray-700">{task.title}</p>
+                                                            <p className="text-xs text-gray-500 italic mt-1">{task.description}</p>
+                                                        </div>
                                                     </div>
+                                                    <span className="text-xs font-medium bg-green-200 text-green-800 px-2 py-1 rounded-full">{task.duration_minutes} min</span>
                                                 </div>
-                                                <span className="text-xs font-medium bg-green-200 text-green-800 px-2 py-1 rounded-full">{task.duration}</span>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-gray-400 italic">No suggestions available</p>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -98,7 +102,7 @@ const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading }) => {
         </div>
     );
 };
-DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired, scheduleData: PropTypes.array.isRequired, scheduleLoading: PropTypes.bool.isRequired };
+DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired, scheduleData: PropTypes.array.isRequired, scheduleLoading: PropTypes.bool.isRequired, suggestions: PropTypes.array.isRequired };
 const AttendanceView = () => {
     const { attended, total } = studentUser.attendance;
     const absent = total - attended;
@@ -230,6 +234,7 @@ export default function StudentDashboard({ token, user, onLogout }) {
     const [attendanceStatus, setAttendanceStatus] = useState('No active session.');
     const [scheduleData, setScheduleData] = useState(FALLBACK_SCHEDULE);
     const [scheduleLoading, setScheduleLoading] = useState(true);
+    const [suggestions, setSuggestions] = useState([]);
 
     useEffect(() => {
         let cancelled = false;
@@ -257,6 +262,17 @@ export default function StudentDashboard({ token, user, onLogout }) {
                     (a._sortKey || '').localeCompare(b._sortKey || '')
                 );
                 setScheduleData(all);
+
+                // Fetch AI task suggestions for free periods
+                try {
+                    const sugData = await getTodaySuggestions(token);
+                    console.log('[Suggestions] raw response:', sugData);
+                    if (!cancelled) {
+                        setSuggestions(sugData.suggestions || []);
+                    }
+                } catch (sugErr) {
+                    console.error('[Suggestions] fetch error:', sugErr);
+                }
             } catch (err) {
                 console.error('[Timetable] fetch error:', err);
             } finally {
@@ -310,13 +326,13 @@ export default function StudentDashboard({ token, user, onLogout }) {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} />;
+            case 'dashboard': return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} suggestions={suggestions} />;
             case 'attendance': return <AttendanceView />;
             case 'performance': return <PerformanceView />;
             case 'resources': return <ResourcesView />;
             case 'assignments': return <AssignmentsView />;
             case 'doubts': return <DoubtsView />;
-            default: return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} />;
+            default: return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} suggestions={suggestions} />;
         }
     };
 

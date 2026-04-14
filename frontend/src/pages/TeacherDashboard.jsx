@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -97,6 +97,9 @@ const DashboardView = ({ setActiveTab }) => (
 );
 DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired };
 
+/** @constant {number} QR session duration in seconds */
+const QR_SESSION_DURATION = 30;
+
 const AttendanceView = ({ token }) => {
     const [selectedClassId, setSelectedClassId] = useState('');
     const [sessionActive, setSessionActive] = useState(false);
@@ -107,6 +110,9 @@ const AttendanceView = ({ token }) => {
     const [classes, setClasses] = useState([]);
     const [classesLoading, setClassesLoading] = useState(true);
     const [classesError, setClassesError] = useState('');
+    const [countdown, setCountdown] = useState(QR_SESSION_DURATION);
+    const [sessionExpired, setSessionExpired] = useState(false);
+    const timerRef = useRef(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -125,6 +131,21 @@ const AttendanceView = ({ token }) => {
         return () => { cancelled = true; };
     }, [token]);
 
+    /**
+     * Clear the countdown interval if one is running.
+     */
+    const clearTimer = useCallback(() => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+    }, []);
+
+    // Clean up the interval on component unmount
+    useEffect(() => {
+        return () => clearTimer();
+    }, [clearTimer]);
+
     // Socket hook — only connects when sessionActive and classId are set
     const activeClassId = sessionActive ? selectedClassId : null;
     const { attendees, isConnected } = useAttendanceSocket(activeClassId, token);
@@ -133,17 +154,44 @@ const AttendanceView = ({ token }) => {
      * Start a QR attendance session: generate a token via the API,
      * then display the QR code and activate the socket connection.
      */
+    /**
+     * Start a countdown timer that expires after QR_SESSION_DURATION seconds.
+     * When the timer reaches 0 the QR session ends automatically.
+     */
+    const startCountdown = useCallback(() => {
+        clearTimer();
+        setCountdown(QR_SESSION_DURATION);
+        setSessionExpired(false);
+
+        timerRef.current = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    timerRef.current = null;
+                    setMode(null);
+                    setSessionActive(false);
+                    setQrToken('');
+                    setSessionExpired(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    }, [clearTimer]);
+
     const startQRSession = async () => {
         if (!selectedClassId) return;
         console.log('Starting QR session — classId:', selectedClassId);
         setQrError('');
         setQrLoading(true);
+        setSessionExpired(false);
         try {
             const data = await generateQRToken(selectedClassId, token);
             if (data.success && data.data?.token) {
                 setQrToken(data.data.token);
                 setMode('qr');
                 setSessionActive(true);
+                startCountdown();
             } else {
                 setQrError(data.error || 'Failed to generate QR token.');
             }
@@ -161,10 +209,13 @@ const AttendanceView = ({ token }) => {
     };
 
     const stopSession = () => {
+        clearTimer();
         setMode(null);
         setSessionActive(false);
         setQrToken('');
         setQrError('');
+        setCountdown(QR_SESSION_DURATION);
+        setSessionExpired(false);
     };
 
     /**
@@ -249,12 +300,35 @@ const AttendanceView = ({ token }) => {
                     <div className="bg-white p-4 inline-block rounded-lg shadow-lg">
                         <QRCode value={JSON.stringify({ token: qrToken, class_id: selectedClassId })} size={200} />
                     </div>
+                    {/* Countdown timer display */}
+                    <div className="mt-4 max-w-md mx-auto">
+                        <div className="flex items-center justify-center mb-2">
+                            <span className={`text-3xl font-bold tabular-nums ${countdown <= 10 ? 'text-red-600' : 'text-blue-700'}`}>
+                                {countdown}
+                            </span>
+                            <span className="ml-2 text-sm text-gray-500">seconds remaining</span>
+                        </div>
+                        <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden">
+                            <div
+                                className={`h-full rounded-full transition-all duration-1000 ease-linear ${countdown <= 10 ? 'bg-red-500' : 'bg-blue-600'}`}
+                                style={{ width: `${(countdown / QR_SESSION_DURATION) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
                     <div className="mt-3 flex items-center justify-center space-x-2">
                         <span className={`inline-block w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
                         <span className="text-sm text-gray-600">
                             {isConnected ? 'Live -- listening for scans' : 'Connecting to server...'}
                         </span>
                     </div>
+                </div>
+            )}
+
+            {sessionExpired && !sessionActive && (
+                <div className="text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-800 font-semibold">
+                        Session expired — click Start QR Session to begin a new one
+                    </p>
                 </div>
             )}
 

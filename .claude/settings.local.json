@@ -12,7 +12,12 @@
       "Bash(PGPASSWORD=postgres psql:*)",
       "Read(//c/Program Files/PostgreSQL//**)",
       "Read(//c/Program Files/PostgreSQL/**)",
-      "Bash(PGPASSWORD=postgres /c/Program Files/PostgreSQL/17/bin/psql.exe:*)"
+      "Bash(PGPASSWORD=postgres /c/Program Files/PostgreSQL/17/bin/psql.exe:*)",
+      "Bash(where psql:*)",
+      "Bash(ls \"C:/Program Files/PostgreSQL/\"*/bin/psql.exe)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(PGPASSWORD=postgres C:/Program Files/PostgreSQL/17/bin/psql.exe:*)",
+      "Bash(C:/Program Files/PostgreSQL/17/bin/psql.exe:*)"
     ]
   }
 }

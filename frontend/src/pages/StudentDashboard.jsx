@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import QRScannerModal from './QRScannerModal.jsx';
 import { scanQRToken } from '../api/attendance.js';
+import { getTodayTimetable } from '../api/timetable.js';
 import { BroadcastChannel } from 'broadcast-channel';
 import logo from '../assets/logo dashboard.png'; 
 
@@ -20,7 +21,7 @@ const QrCodeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 
 // --- MOCK DATA ---
 const studentUser = { name: 'Aarav Mehta', goal: 'Career Goal: Data Scientist', attendance: { percentage: 92, total: 200, attended: 184 }};
-const scheduleData = [ { time: '09:00 - 10:00', type: 'class', title: 'Advanced Calculus', location: 'Room 301' }, { time: '10:00 - 11:00', type: 'class', title: 'Data Structures', location: 'Lab 5' }, { time: '11:00 - 01:00', type: 'free', title: 'Free Period', location: 'Campus' }, { time: '01:00 - 02:00', type: 'break', title: 'Lunch Break', location: 'Cafeteria' }, { time: '02:00 - 04:00', type: 'free', title: 'Free Period', location: 'Campus' },];
+const FALLBACK_SCHEDULE = [ { time: '09:00 - 10:00', type: 'class', title: 'Advanced Calculus', location: 'Room 301' }, { time: '10:00 - 11:00', type: 'class', title: 'Data Structures', location: 'Lab 5' }, { time: '11:00 - 01:00', type: 'free', title: 'Free Period', location: 'Campus' }, { time: '01:00 - 02:00', type: 'break', title: 'Lunch Break', location: 'Cafeteria' }, { time: '02:00 - 04:00', type: 'free', title: 'Free Period', location: 'Campus' },];
 const suggestedTasks = [ { id: 1, period: '11:00 - 01:00', title: 'Complete Python for Data Science Module 3', reason: 'Aligns with your Data Scientist goal.', duration: "45 min" }, { id: 2, period: '11:00 - 01:00', title: 'Review "Derivatives" on Khan Academy', reason: 'You scored 55% on the last Calculus quiz.', duration: "30 min" }, { id: 3, period: '02:00 - 04:00', title: 'Practice 5 problems on LeetCode (Easy)', reason: 'Builds foundational coding skills.', duration: "60 min" },];
 const performanceData = { scores: [ { subject: 'Calculus', score: 55, grade: 'C' }, { subject: 'Data Structures', score: 88, grade: 'A' }, { subject: 'Statistics', score: 75, grade: 'B' }, { subject: 'English', score: 95, grade: 'A+' }, ]};
 const resourcesData = [ { type: 'Notes', title: 'Lecture Notes: Big O Notation', subject: 'Data Structures', link: '#' }, { type: 'External', title: 'Khan Academy: Derivatives Introduction', subject: 'Calculus', link: '#' }, { type: 'Notes', title: 'Guide to Statistical Models', subject: 'Statistics', link: '#' },];
@@ -32,7 +33,17 @@ const Card = ({ children, className }) => <div className={`bg-white rounded-xl s
 Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
-const DashboardView = ({ setScannerOpen }) => {
+const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading }) => {
+    if (scheduleLoading) {
+        return (
+            <div className="flex items-center justify-center py-20">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                    <p className="text-gray-500 text-sm font-medium">Loading your schedule...</p>
+                </div>
+            </div>
+        );
+    }
     const mergedSchedule = scheduleData.map(item => {
         const itemWithIcon = { ...item, icon: item.type === 'class' ? <BookOpenIcon/> : <ClockIcon/> };
         if (item.type === 'free') {
@@ -87,7 +98,7 @@ const DashboardView = ({ setScannerOpen }) => {
         </div>
     );
 };
-DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired };
+DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired, scheduleData: PropTypes.array.isRequired, scheduleLoading: PropTypes.bool.isRequired };
 const AttendanceView = () => {
     const { attended, total } = studentUser.attendance;
     const absent = total - attended;
@@ -213,11 +224,48 @@ const DoubtsView = () => (
 );
 
 // --- Main App Structure ---
-// eslint-disable-next-line no-unused-vars -- token will be used when real API calls are wired up
 export default function StudentDashboard({ token, user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isScannerOpen, setScannerOpen] = useState(false);
     const [attendanceStatus, setAttendanceStatus] = useState('No active session.');
+    const [scheduleData, setScheduleData] = useState(FALLBACK_SCHEDULE);
+    const [scheduleLoading, setScheduleLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        async function fetchTimetable() {
+            try {
+                const data = await getTodayTimetable(token);
+                console.log('[Timetable] raw response:', data);
+                if (cancelled) return;
+                const classItems = (data.entries || []).map(entry => ({
+                    type: 'class',
+                    title: entry.class_name,
+                    time: `${(entry.start_time || '').slice(0, 5)} - ${(entry.end_time || '').slice(0, 5)}`,
+                    location: entry.room,
+                    _sortKey: entry.start_time,
+                }));
+                const freeItems = (data.freePeriods || []).map(fp => ({
+                    type: 'free',
+                    title: 'Free Period',
+                    time: `${(fp.start_time || '').slice(0,5)} - ${(fp.end_time || '').slice(0,5)}`,
+                    location: 'Campus',
+                    start_time: fp.start_time,
+                    _sortKey: fp.start_time,
+                }));
+                const all = [...classItems, ...freeItems].sort((a, b) =>
+                    (a._sortKey || '').localeCompare(b._sortKey || '')
+                );
+                setScheduleData(all);
+            } catch (err) {
+                console.error('[Timetable] fetch error:', err);
+            } finally {
+                if (!cancelled) setScheduleLoading(false);
+            }
+        }
+        fetchTimetable();
+        return () => { cancelled = true; };
+    }, [token]);
 
     useEffect(() => {
         const channel = new BroadcastChannel('shikshashelf_attendance');
@@ -262,13 +310,13 @@ export default function StudentDashboard({ token, user, onLogout }) {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <DashboardView setScannerOpen={setScannerOpen} />;
+            case 'dashboard': return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} />;
             case 'attendance': return <AttendanceView />;
             case 'performance': return <PerformanceView />;
             case 'resources': return <ResourcesView />;
             case 'assignments': return <AssignmentsView />;
             case 'doubts': return <DoubtsView />;
-            default: return <DashboardView setScannerOpen={setScannerOpen} />;
+            default: return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} />;
         }
     };
 

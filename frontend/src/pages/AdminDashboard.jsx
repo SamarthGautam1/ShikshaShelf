@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import logo from '../assets/logo dashboard.png'; 
+import logo from '../assets/logo dashboard.png';
+import { getAdminStats, getAdminUsers, getAttendanceReport } from '../api/admin.js';
 
 // --- Helper Components & Icons ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -10,67 +11,136 @@ const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" he
 const FileDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m15 15-3 3-3-3"/></svg>;
 const LogOutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
 
-// --- MOCK DATA ---
-const adminUser = { name: 'Principal Sharma' };
-const adminStats = {
-    totalStudents: 1250,
-    totalTeachers: 85,
-    overallAttendance: 93,
-    taskEngagement: 76,
-};
-const attendanceTrend = [
-    { day: 'Mon', attendance: 94 }, { day: 'Tue', attendance: 95 },
-    { day: 'Wed', attendance: 92 }, { day: 'Thu', attendance: 91 },
-    { day: 'Fri', attendance: 89 },
-];
-const allUsers = {
-    students: [
-        { id: 'S101', name: 'Aarav Patel', class: 'B.Sc Sem III' },
-        { id: 'S102', name: 'Diya Mehta', class: 'B.Sc Sem III' },
-    ],
-    teachers: [
-        { id: 'T01', name: 'Anjali Desai', subject: 'Advanced Mathematics' },
-        { id: 'T02', name: 'Vikram Singh', subject: 'Data Structures' },
-    ]
-};
-const academicCalendar = [
-    { id: 1, date: '2025-09-25', event: 'Mid-Term Exams Begin' },
-    { id: 2, date: '2025-10-02', event: 'Gandhi Jayanti Holiday' },
-];
+// --- Loading Spinner ---
+const Spinner = () => (
+    <div className="flex items-center justify-center py-12">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+    </div>
+);
+
+// --- Error Banner ---
+const ErrorBanner = ({ message, onRetry }) => (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+        <p className="text-red-700 text-sm">{message}</p>
+        {onRetry && (
+            <button onClick={onRetry} className="text-red-600 hover:text-red-800 text-sm font-medium underline ml-4">
+                Retry
+            </button>
+        )}
+    </div>
+);
+ErrorBanner.propTypes = { message: PropTypes.string.isRequired, onRetry: PropTypes.func };
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
 Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
-const DashboardView = () => (
-    <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="flex flex-col items-center justify-center bg-blue-50"><div className="text-5xl font-bold text-blue-600">{adminStats.totalStudents}</div><div className="text-gray-600 mt-2">Total Students</div></Card>
-            <Card className="flex flex-col items-center justify-center bg-green-50"><div className="text-5xl font-bold text-green-600">{adminStats.totalTeachers}</div><div className="text-gray-600 mt-2">Total Teachers</div></Card>
-            <Card className="flex flex-col items-center justify-center bg-yellow-50"><div className="text-5xl font-bold text-yellow-600">{adminStats.overallAttendance}%</div><div className="text-gray-600 mt-2">Overall Attendance</div></Card>
-            <Card className="flex flex-col items-center justify-center bg-purple-50"><div className="text-5xl font-bold text-purple-600">{adminStats.taskEngagement}%</div><div className="text-gray-600 mt-2">Task Engagement</div></Card>
-        </div>
-        <Card>
-            <h2 className="font-bold text-xl mb-4">Weekly Attendance Trend</h2>
-            <div className="w-full h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" />
-                        <YAxis domain={[80, 100]} unit="%" />
-                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="attendance" stroke="#3b82f6" strokeWidth={3} name="Attendance %" />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </Card>
-    </div>
-);
+const DashboardView = ({ token }) => {
+    const [stats, setStats] = useState(null);
+    const [attendanceTrend, setAttendanceTrend] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-const UserManagementView = () => {
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [statsData, reportData] = await Promise.all([
+                getAdminStats(token),
+                getAttendanceReport(token),
+            ]);
+            setStats(statsData);
+            setAttendanceTrend(reportData.trend || reportData || []);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
+
+    if (loading) return <Spinner />;
+    if (error) return <ErrorBanner message={error} onRetry={fetchData} />;
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="flex flex-col items-center justify-center bg-blue-50">
+                    <div className="text-5xl font-bold text-blue-600">{stats.total_students ?? 0}</div>
+                    <div className="text-gray-600 mt-2">Total Students</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center bg-green-50">
+                    <div className="text-5xl font-bold text-green-600">{stats.total_teachers ?? 0}</div>
+                    <div className="text-gray-600 mt-2">Total Teachers</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center bg-yellow-50">
+                    <div className="text-5xl font-bold text-yellow-600">{stats.overall_attendance_rate ?? 0}%</div>
+                    <div className="text-gray-600 mt-2">Overall Attendance</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center bg-purple-50">
+                    <div className="text-5xl font-bold text-purple-600">{stats.active_classes_today ?? 0}</div>
+                    <div className="text-gray-600 mt-2">Active Classes Today</div>
+                </Card>
+            </div>
+            <Card>
+                <h2 className="font-bold text-xl mb-4">Weekly Attendance Trend</h2>
+                <div className="w-full h-80">
+                    {attendanceTrend.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="day" />
+                                <YAxis domain={[80, 100]} unit="%" />
+                                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }} />
+                                <Legend />
+                                <Line type="monotone" dataKey="attendance" stroke="#3b82f6" strokeWidth={3} name="Attendance %" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <p className="text-center text-gray-500 py-12">No attendance trend data available.</p>
+                    )}
+                </div>
+            </Card>
+        </div>
+    );
+};
+DashboardView.propTypes = { token: PropTypes.string.isRequired };
+
+const UserManagementView = ({ token }) => {
     const [activeTab, setActiveTab] = useState('students');
+    const [users, setUsers] = useState({ students: [], teachers: [] });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [students, teachers] = await Promise.all([
+                getAdminUsers(token, 'student'),
+                getAdminUsers(token, 'teacher'),
+            ]);
+            setUsers({
+                students: Array.isArray(students) ? students : students.users || [],
+                teachers: Array.isArray(teachers) ? teachers : teachers.users || [],
+            });
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
+
     return (
         <Card>
             <div className="flex justify-between items-center mb-6">
@@ -83,42 +153,64 @@ const UserManagementView = () => {
                     <button onClick={() => setActiveTab('teachers')} className={`py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'teachers' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Teachers</button>
                 </nav>
             </div>
-            <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full bg-white">
-                    <thead className="bg-gray-50"><tr>
-                        <th className="text-left py-3 px-4 font-semibold text-sm">User ID</th><th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
-                        <th className="text-left py-3 px-4 font-semibold text-sm">{activeTab === 'students' ? 'Class' : 'Subject'}</th><th className="text-left py-3 px-4 font-semibold text-sm">Actions</th></tr></thead>
-                    <tbody>
-                        {(activeTab === 'students' ? allUsers.students : allUsers.teachers).map(user => (
-                            <tr key={user.id} className="border-b hover:bg-gray-50">
-                                <td className="py-3 px-4">{user.id}</td><td className="py-3 px-4 font-medium">{user.name}</td>
-                                <td className="py-3 px-4">{user.class || user.subject}</td>
-                                <td className="py-3 px-4 space-x-2"><button className="text-blue-600 hover:underline text-sm">Edit</button><button className="text-red-600 hover:underline text-sm">Delete</button></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            {loading ? <Spinner /> : error ? <ErrorBanner message={error} onRetry={fetchUsers} /> : (
+                <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full bg-white">
+                        <thead className="bg-gray-50"><tr>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">User ID</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">{activeTab === 'students' ? 'Class' : 'Subject'}</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                            {(activeTab === 'students' ? users.students : users.teachers).length === 0 ? (
+                                <tr><td colSpan="4" className="py-8 text-center text-gray-500">No {activeTab} found.</td></tr>
+                            ) : (
+                                (activeTab === 'students' ? users.students : users.teachers).map(user => (
+                                    <tr key={user.id} className="border-b hover:bg-gray-50">
+                                        <td className="py-3 px-4">{user.id}</td>
+                                        <td className="py-3 px-4 font-medium">{user.name}</td>
+                                        <td className="py-3 px-4">{user.class || user.subject}</td>
+                                        <td className="py-3 px-4 space-x-2">
+                                            <button className="text-blue-600 hover:underline text-sm">Edit</button>
+                                            <button className="text-red-600 hover:underline text-sm">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </Card>
     );
 };
+UserManagementView.propTypes = { token: PropTypes.string.isRequired };
 
 const SettingsView = () => (
     <div className="space-y-6">
         <Card>
             <h2 className="font-bold text-xl mb-4">Academic Calendar</h2>
             <div className="space-y-3">
-                {academicCalendar.map(item => (
-                    <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg"><p><span className="font-semibold">{item.date}:</span> {item.event}</p><button className="text-red-600 hover:underline text-sm">Remove</button></div>
-                ))}
+                <p className="text-center text-gray-500 p-4">Calendar events will load from API.</p>
             </div>
-             <div className="mt-4 flex items-center space-x-2"><input type="date" className="p-2 border rounded-md"/><input type="text" placeholder="Event Name" className="flex-1 p-2 border rounded-md"/><button className="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Event</button></div>
+             <div className="mt-4 flex items-center space-x-2">
+                <input type="date" className="p-2 border rounded-md"/>
+                <input type="text" placeholder="Event Name" className="flex-1 p-2 border rounded-md"/>
+                <button className="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Event</button>
+            </div>
         </Card>
          <Card>
             <h2 className="font-bold text-xl mb-4">System Configuration</h2>
             <div className="space-y-4">
-                <div className="flex justify-between items-center"><p className="font-medium">Enable Facial Recognition Attendance</p><label className="switch"><input type="checkbox"/><span className="slider round"></span></label></div>
-                <div className="flex justify-between items-center"><p className="font-medium">Auto-suggest tasks based on performance</p><label className="switch"><input type="checkbox" defaultChecked/><span className="slider round"></span></label></div>
+                <div className="flex justify-between items-center">
+                    <p className="font-medium">Enable Facial Recognition Attendance</p>
+                    <label className="switch"><input type="checkbox"/><span className="slider round"></span></label>
+                </div>
+                <div className="flex justify-between items-center">
+                    <p className="font-medium">Auto-suggest tasks based on performance</p>
+                    <label className="switch"><input type="checkbox" defaultChecked/><span className="slider round"></span></label>
+                </div>
             </div>
         </Card>
     </div>
@@ -129,9 +221,21 @@ const ReportsView = () => (
         <h2 className="font-bold text-xl mb-4">Generate Official Reports</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
             <div className="space-y-4">
-                <div><label className="text-sm font-medium text-gray-700">Report Type</label><select className="mt-1 block w-full p-2 border rounded-md"><option>Monthly Attendance</option><option>Student Performance Summary</option><option>Task Engagement Report</option></select></div>
-                <div><label className="text-sm font-medium text-gray-700">Date Range</label><input type="date" className="mt-1 block w-full p-2 border rounded-md"/></div>
-                 <button className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center"><FileDownIcon className="mr-2"/>Generate & Download Report</button>
+                <div>
+                    <label className="text-sm font-medium text-gray-700">Report Type</label>
+                    <select className="mt-1 block w-full p-2 border rounded-md">
+                        <option>Monthly Attendance</option>
+                        <option>Student Performance Summary</option>
+                        <option>Task Engagement Report</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-gray-700">Date Range</label>
+                    <input type="date" className="mt-1 block w-full p-2 border rounded-md"/>
+                </div>
+                 <button className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center">
+                    <FileDownIcon className="mr-2"/>Generate & Download Report
+                </button>
             </div>
             <div>
                  <h3 className="font-semibold mb-2">Recently Generated</h3>
@@ -143,7 +247,6 @@ const ReportsView = () => (
 
 
 // --- Main App Structure ---
-// eslint-disable-next-line no-unused-vars -- token will be used when real API calls are wired up
 export default function AdminDashboard({ token, user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const navItems = [
@@ -155,11 +258,11 @@ export default function AdminDashboard({ token, user, onLogout }) {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <DashboardView />;
-            case 'users': return <UserManagementView />;
+            case 'dashboard': return <DashboardView token={token} />;
+            case 'users': return <UserManagementView token={token} />;
             case 'settings': return <SettingsView />;
             case 'reports': return <ReportsView />;
-            default: return <DashboardView />;
+            default: return <DashboardView token={token} />;
         }
     };
 
@@ -185,7 +288,7 @@ export default function AdminDashboard({ token, user, onLogout }) {
                 <header className="bg-white h-20 shadow-md flex-shrink-0 flex items-center justify-between px-8">
                     <div>
                         <h1 className="text-xl font-bold text-gray-800">Administrator Dashboard</h1>
-                        <p className="text-gray-500 text-sm">{user?.name || adminUser.name}</p>
+                        <p className="text-gray-500 text-sm">{user?.name || 'Admin'}</p>
                     </div>
                      <button onClick={onLogout} className="text-gray-500 hover:text-red-600" title="Log Out"><LogOutIcon /></button>
                 </header>

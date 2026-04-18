@@ -4,14 +4,16 @@
   "graph": {
     "hyperedges": [
       {
-        "id": "attendance_system_flow",
+        "id": "attendance_system_pipeline",
         "label": "Attendance System Pipeline",
         "nodes": [
           "claude_teacher_attendance",
           "claude_qr_attendance",
           "claude_facial_recognition",
           "readme_teacher_attendance_hub",
-          "readme_face_recognition_local"
+          "readme_face_recognition_local",
+          "face_reqs_opencv",
+          "face_reqs_dlib"
         ],
         "relation": "participate_in",
         "confidence": "EXTRACTED",
@@ -26,7 +28,7 @@
           "claude_ai_task_suggestions",
           "readme_smart_task_suggestions",
           "readme_my_day_view",
-          "ai_reqs_anthropic"
+          "ai_reqs_groq"
         ],
         "relation": "participate_in",
         "confidence": "EXTRACTED",
@@ -34,13 +36,14 @@
         "source_file": "CLAUDE.md"
       },
       {
-        "id": "architecture_decisions",
+        "id": "architecture_decision_records",
         "label": "Architecture Decision Records",
         "nodes": [
-          "claude_rationale_backend_auth_source",
+          "claude_rationale_backend_auth",
           "claude_rationale_qr_expiry",
           "claude_rationale_soft_deletes",
-          "claude_rationale_no_direct_ai"
+          "claude_rationale_no_direct_ai",
+          "claude_rationale_pii_encryption"
         ],
         "relation": "form",
         "confidence": "EXTRACTED",
@@ -56,7 +59,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L1",
       "id": "ai_service_app_py",
-      "community": 8,
+      "community": 9,
       "norm_label": "app.py"
     },
     {
@@ -65,7 +68,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L23",
       "id": "app_health",
-      "community": 8,
+      "community": 9,
       "norm_label": "health()"
     },
     {
@@ -74,7 +77,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L46",
       "id": "app_not_found",
-      "community": 8,
+      "community": 9,
       "norm_label": "not_found()"
     },
     {
@@ -83,7 +86,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L52",
       "id": "app_method_not_allowed",
-      "community": 8,
+      "community": 9,
       "norm_label": "method_not_allowed()"
     },
     {
@@ -92,7 +95,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L58",
       "id": "app_internal_error",
-      "community": 8,
+      "community": 9,
       "norm_label": "internal_error()"
     },
     {
@@ -101,7 +104,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L1",
       "id": "app_rationale_1",
-      "community": 8,
+      "community": 9,
       "norm_label": "flask entry point for the e-\u0936\u093f\u0915\u0937\u093e ai microservice.  loads environment variables"
     },
     {
@@ -110,7 +113,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L24",
       "id": "app_rationale_24",
-      "community": 8,
+      "community": 9,
       "norm_label": "return a simple health check response.      returns:         json with success s"
     },
     {
@@ -119,7 +122,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L47",
       "id": "app_rationale_47",
-      "community": 8,
+      "community": 9,
       "norm_label": "handle 404 errors with a consistent json response."
     },
     {
@@ -128,7 +131,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L53",
       "id": "app_rationale_53",
-      "community": 8,
+      "community": 9,
       "norm_label": "handle 405 errors with a consistent json response."
     },
     {
@@ -137,7 +140,7 @@
       "source_file": "ai-service\\app.py",
       "source_location": "L59",
       "id": "app_rationale_59",
-      "community": 8,
+      "community": 9,
       "norm_label": "handle 500 errors with a consistent json response."
     },
     {
@@ -146,7 +149,7 @@
       "source_file": "ai-service\\face_recognition\\verify_backend.py",
       "source_location": "L1",
       "id": "ai_service_face_recognition_verify_backend_py",
-      "community": 31,
+      "community": 32,
       "norm_label": "verify_backend.py"
     },
     {
@@ -290,7 +293,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L1",
       "id": "ai_service_face_recognition_smart_attendance_system_gemattendance_py",
-      "community": 2,
+      "community": 1,
       "norm_label": "gemattendance.py"
     },
     {
@@ -299,7 +302,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L13",
       "id": "gemattendance_customfacerecognition",
-      "community": 2,
+      "community": 1,
       "norm_label": "customfacerecognition"
     },
     {
@@ -308,7 +311,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L14",
       "id": "gemattendance_customfacerecognition_init",
-      "community": 2,
+      "community": 1,
       "norm_label": ".__init__()"
     },
     {
@@ -317,7 +320,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L50",
       "id": "gemattendance_customfacerecognition_get_face_encoding",
-      "community": 2,
+      "community": 1,
       "norm_label": ".get_face_encoding()"
     },
     {
@@ -326,7 +329,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L62",
       "id": "gemattendance_customfacerecognition_load_known_faces",
-      "community": 2,
+      "community": 1,
       "norm_label": ".load_known_faces()"
     },
     {
@@ -335,7 +338,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L117",
       "id": "gemattendance_customfacerecognition_get_face_center",
-      "community": 2,
+      "community": 1,
       "norm_label": ".get_face_center()"
     },
     {
@@ -344,7 +347,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L122",
       "id": "gemattendance_customfacerecognition_find_closest_tracked_face",
-      "community": 2,
+      "community": 1,
       "norm_label": ".find_closest_tracked_face()"
     },
     {
@@ -353,7 +356,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L141",
       "id": "gemattendance_customfacerecognition_recognize_faces_in_frame",
-      "community": 2,
+      "community": 1,
       "norm_label": ".recognize_faces_in_frame()"
     },
     {
@@ -362,7 +365,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L216",
       "id": "gemattendance_customfacerecognition_mark_attendance",
-      "community": 2,
+      "community": 1,
       "norm_label": ".mark_attendance()"
     },
     {
@@ -371,7 +374,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L247",
       "id": "gemattendance_customfacerecognition_save_attendance",
-      "community": 2,
+      "community": 1,
       "norm_label": ".save_attendance()"
     },
     {
@@ -380,7 +383,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L268",
       "id": "gemattendance_customfacerecognition_run_system",
-      "community": 2,
+      "community": 1,
       "norm_label": ".run_system()"
     },
     {
@@ -389,7 +392,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L351",
       "id": "gemattendance_main",
-      "community": 2,
+      "community": 1,
       "norm_label": "main()"
     },
     {
@@ -398,7 +401,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L51",
       "id": "gemattendance_rationale_51",
-      "community": 2,
+      "community": 1,
       "norm_label": "get face encoding using dlib models"
     },
     {
@@ -407,7 +410,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L63",
       "id": "gemattendance_rationale_63",
-      "community": 2,
+      "community": 1,
       "norm_label": "load student photos and create encodings"
     },
     {
@@ -416,7 +419,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L118",
       "id": "gemattendance_rationale_118",
-      "community": 2,
+      "community": 1,
       "norm_label": "get center point of a face for tracking"
     },
     {
@@ -425,7 +428,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L123",
       "id": "gemattendance_rationale_123",
-      "community": 2,
+      "community": 1,
       "norm_label": "find the closest tracked face to avoid re-recognition"
     },
     {
@@ -434,7 +437,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L142",
       "id": "gemattendance_rationale_142",
-      "community": 2,
+      "community": 1,
       "norm_label": "fixed: synchronous face recognition to avoid timing issues"
     },
     {
@@ -443,7 +446,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L248",
       "id": "gemattendance_rationale_248",
-      "community": 2,
+      "community": 1,
       "norm_label": "save attendance to csv"
     },
     {
@@ -452,7 +455,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\gemattendance.py",
       "source_location": "L269",
       "id": "gemattendance_rationale_269",
-      "community": 2,
+      "community": 1,
       "norm_label": "run the attendance system - synchronization fixed"
     },
     {
@@ -461,7 +464,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\package_for_parent.py",
       "source_location": "L1",
       "id": "ai_service_face_recognition_smart_attendance_system_package_for_parent_py",
-      "community": 18,
+      "community": 20,
       "norm_label": "package_for_parent.py"
     },
     {
@@ -470,7 +473,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\package_for_parent.py",
       "source_location": "L6",
       "id": "package_for_parent_create_project_package",
-      "community": 18,
+      "community": 20,
       "norm_label": "create_project_package()"
     },
     {
@@ -479,7 +482,7 @@
       "source_file": "ai-service\\face_recognition\\smart_attendance_system\\config\\settings.py",
       "source_location": "L1",
       "id": "ai_service_face_recognition_smart_attendance_system_config_settings_py",
-      "community": 32,
+      "community": 33,
       "norm_label": "settings.py"
     },
     {
@@ -488,7 +491,7 @@
       "source_file": "ai-service\\task_suggestions\\generator.py",
       "source_location": "L1",
       "id": "ai_service_task_suggestions_generator_py",
-      "community": 13,
+      "community": 14,
       "norm_label": "generator.py"
     },
     {
@@ -497,17 +500,17 @@
       "source_file": "ai-service\\task_suggestions\\generator.py",
       "source_location": "L44",
       "id": "generator_generate_task_suggestions",
-      "community": 13,
+      "community": 14,
       "norm_label": "generate_task_suggestions()"
     },
     {
-      "label": "Core logic for generating AI-driven task suggestions using the Anthropic API.",
+      "label": "Core logic for generating AI-driven task suggestions using the Groq API.",
       "file_type": "rationale",
       "source_file": "ai-service\\task_suggestions\\generator.py",
       "source_location": "L1",
       "id": "generator_rationale_1",
-      "community": 13,
-      "norm_label": "core logic for generating ai-driven task suggestions using the anthropic api."
+      "community": 14,
+      "norm_label": "core logic for generating ai-driven task suggestions using the groq api."
     },
     {
       "label": "Generate AI-driven task suggestions for a student's free periods.      Uses the",
@@ -515,7 +518,7 @@
       "source_file": "ai-service\\task_suggestions\\generator.py",
       "source_location": "L45",
       "id": "generator_rationale_45",
-      "community": 13,
+      "community": 14,
       "norm_label": "generate ai-driven task suggestions for a student's free periods.      uses the"
     },
     {
@@ -524,7 +527,7 @@
       "source_file": "ai-service\\task_suggestions\\routes.py",
       "source_location": "L1",
       "id": "ai_service_task_suggestions_routes_py",
-      "community": 4,
+      "community": 3,
       "norm_label": "routes.py"
     },
     {
@@ -533,7 +536,7 @@
       "source_file": "ai-service\\task_suggestions\\routes.py",
       "source_location": "L15",
       "id": "routes_generate",
-      "community": 4,
+      "community": 3,
       "norm_label": "generate()"
     },
     {
@@ -542,7 +545,7 @@
       "source_file": "ai-service\\task_suggestions\\routes.py",
       "source_location": "L1",
       "id": "routes_rationale_1",
-      "community": 4,
+      "community": 3,
       "norm_label": "flask blueprint for task suggestion endpoints."
     },
     {
@@ -551,7 +554,7 @@
       "source_file": "ai-service\\task_suggestions\\routes.py",
       "source_location": "L16",
       "id": "routes_rationale_16",
-      "community": 4,
+      "community": 3,
       "norm_label": "generate task suggestions for a student's free periods.      expects a json body"
     },
     {
@@ -560,7 +563,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L1",
       "id": "ai_service_task_suggestions_schemas_py",
-      "community": 4,
+      "community": 3,
       "norm_label": "schemas.py"
     },
     {
@@ -569,7 +572,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L6",
       "id": "schemas_freeperiodschema",
-      "community": 4,
+      "community": 3,
       "norm_label": "freeperiodschema"
     },
     {
@@ -578,7 +581,7 @@
       "source_file": "",
       "source_location": "",
       "id": "schema",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema"
     },
     {
@@ -587,7 +590,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L19",
       "id": "schemas_tasksuggestioninputschema",
-      "community": 4,
+      "community": 3,
       "norm_label": "tasksuggestioninputschema"
     },
     {
@@ -596,7 +599,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L40",
       "id": "schemas_taskschema",
-      "community": 4,
+      "community": 3,
       "norm_label": "taskschema"
     },
     {
@@ -605,7 +608,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L49",
       "id": "schemas_periodsuggestionsschema",
-      "community": 4,
+      "community": 3,
       "norm_label": "periodsuggestionsschema"
     },
     {
@@ -614,7 +617,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L57",
       "id": "schemas_tasksuggestionoutputschema",
-      "community": 4,
+      "community": 3,
       "norm_label": "tasksuggestionoutputschema"
     },
     {
@@ -623,7 +626,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L1",
       "id": "schemas_rationale_1",
-      "community": 4,
+      "community": 3,
       "norm_label": "marshmallow schemas for task suggestion input/output validation."
     },
     {
@@ -632,7 +635,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L7",
       "id": "schemas_rationale_7",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema for a single free period time slot."
     },
     {
@@ -641,7 +644,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L20",
       "id": "schemas_rationale_20",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema for validating task suggestion generation requests."
     },
     {
@@ -650,7 +653,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L41",
       "id": "schemas_rationale_41",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema for a single generated task suggestion."
     },
     {
@@ -659,7 +662,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L50",
       "id": "schemas_rationale_50",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema for task suggestions for a single free period."
     },
     {
@@ -668,7 +671,7 @@
       "source_file": "ai-service\\task_suggestions\\schemas.py",
       "source_location": "L58",
       "id": "schemas_rationale_58",
-      "community": 4,
+      "community": 3,
       "norm_label": "schema for the full task suggestion response payload."
     },
     {
@@ -677,7 +680,7 @@
       "source_file": "ai-service\\task_suggestions\\__init__.py",
       "source_location": "L1",
       "id": "ai_service_task_suggestions_init_py",
-      "community": 19,
+      "community": 21,
       "norm_label": "__init__.py"
     },
     {
@@ -686,7 +689,7 @@
       "source_file": "ai-service\\task_suggestions\\__init__.py",
       "source_location": "L1",
       "id": "init_rationale_1",
-      "community": 19,
+      "community": 21,
       "norm_label": "task suggestions module for ai-driven learning recommendations."
     },
     {
@@ -695,7 +698,7 @@
       "source_file": "backend\\src\\index.js",
       "source_location": "L1",
       "id": "backend_src_index_js",
-      "community": 33,
+      "community": 34,
       "norm_label": "index.js"
     },
     {
@@ -704,7 +707,7 @@
       "source_file": "backend\\src\\controllers\\tasks.js",
       "source_location": "L1",
       "id": "backend_src_controllers_tasks_js",
-      "community": 20,
+      "community": 22,
       "norm_label": "tasks.js"
     },
     {
@@ -713,7 +716,7 @@
       "source_file": "backend\\src\\controllers\\tasks.js",
       "source_location": "L8",
       "id": "tasks_getsuggestions",
-      "community": 20,
+      "community": 22,
       "norm_label": "getsuggestions()"
     },
     {
@@ -722,7 +725,7 @@
       "source_file": "backend\\src\\controllers\\timetable.js",
       "source_location": "L1",
       "id": "backend_src_controllers_timetable_js",
-      "community": 11,
+      "community": 12,
       "norm_label": "timetable.js"
     },
     {
@@ -731,7 +734,7 @@
       "source_file": "backend\\src\\controllers\\timetable.js",
       "source_location": "L9",
       "id": "timetable_getclasstimetable",
-      "community": 11,
+      "community": 12,
       "norm_label": "getclasstimetable()"
     },
     {
@@ -740,7 +743,7 @@
       "source_file": "backend\\src\\controllers\\timetable.js",
       "source_location": "L27",
       "id": "timetable_createentry",
-      "community": 11,
+      "community": 12,
       "norm_label": "createentry()"
     },
     {
@@ -749,7 +752,7 @@
       "source_file": "backend\\src\\controllers\\timetable.js",
       "source_location": "L64",
       "id": "timetable_deleteentry",
-      "community": 11,
+      "community": 12,
       "norm_label": "deleteentry()"
     },
     {
@@ -758,7 +761,7 @@
       "source_file": "backend\\src\\controllers\\timetable.js",
       "source_location": "L91",
       "id": "timetable_getstudenttoday",
-      "community": 11,
+      "community": 12,
       "norm_label": "getstudenttoday()"
     },
     {
@@ -767,7 +770,7 @@
       "source_file": "backend\\src\\db\\index.js",
       "source_location": "L1",
       "id": "backend_src_db_index_js",
-      "community": 21,
+      "community": 23,
       "norm_label": "index.js"
     },
     {
@@ -776,7 +779,7 @@
       "source_file": "backend\\src\\db\\index.js",
       "source_location": "L13",
       "id": "index_query",
-      "community": 21,
+      "community": 23,
       "norm_label": "query()"
     },
     {
@@ -785,7 +788,7 @@
       "source_file": "backend\\src\\middleware\\auth.js",
       "source_location": "L1",
       "id": "backend_src_middleware_auth_js",
-      "community": 22,
+      "community": 24,
       "norm_label": "auth.js"
     },
     {
@@ -794,7 +797,7 @@
       "source_file": "backend\\src\\middleware\\auth.js",
       "source_location": "L8",
       "id": "auth_authmiddleware",
-      "community": 22,
+      "community": 24,
       "norm_label": "authmiddleware()"
     },
     {
@@ -803,7 +806,7 @@
       "source_file": "backend\\src\\middleware\\errorHandler.js",
       "source_location": "L1",
       "id": "backend_src_middleware_errorhandler_js",
-      "community": 23,
+      "community": 25,
       "norm_label": "errorhandler.js"
     },
     {
@@ -812,7 +815,7 @@
       "source_file": "backend\\src\\middleware\\errorHandler.js",
       "source_location": "L5",
       "id": "errorhandler_errorhandler",
-      "community": 23,
+      "community": 25,
       "norm_label": "errorhandler()"
     },
     {
@@ -821,7 +824,7 @@
       "source_file": "backend\\src\\models\\timetable.js",
       "source_location": "L1",
       "id": "backend_src_models_timetable_js",
-      "community": 12,
+      "community": 13,
       "norm_label": "timetable.js"
     },
     {
@@ -830,7 +833,7 @@
       "source_file": "backend\\src\\models\\timetable.js",
       "source_location": "L8",
       "id": "timetable_getbyclassid",
-      "community": 12,
+      "community": 13,
       "norm_label": "getbyclassid()"
     },
     {
@@ -839,7 +842,7 @@
       "source_file": "backend\\src\\models\\timetable.js",
       "source_location": "L23",
       "id": "timetable_create",
-      "community": 12,
+      "community": 13,
       "norm_label": "create()"
     },
     {
@@ -848,7 +851,7 @@
       "source_file": "backend\\src\\models\\timetable.js",
       "source_location": "L37",
       "id": "timetable_deletebyid",
-      "community": 12,
+      "community": 13,
       "norm_label": "deletebyid()"
     },
     {
@@ -857,7 +860,7 @@
       "source_file": "backend\\src\\models\\timetable.js",
       "source_location": "L50",
       "id": "timetable_getstudententriesforday",
-      "community": 12,
+      "community": 13,
       "norm_label": "getstudententriesforday()"
     },
     {
@@ -866,7 +869,7 @@
       "source_file": "backend\\src\\routes\\attendance.js",
       "source_location": "L1",
       "id": "backend_src_routes_attendance_js",
-      "community": 34,
+      "community": 35,
       "norm_label": "attendance.js"
     },
     {
@@ -875,7 +878,7 @@
       "source_file": "backend\\src\\routes\\auth.js",
       "source_location": "L1",
       "id": "backend_src_routes_auth_js",
-      "community": 24,
+      "community": 26,
       "norm_label": "auth.js"
     },
     {
@@ -884,7 +887,7 @@
       "source_file": "backend\\src\\routes\\auth.js",
       "source_location": "L28",
       "id": "auth_signtoken",
-      "community": 24,
+      "community": 26,
       "norm_label": "signtoken()"
     },
     {
@@ -893,7 +896,7 @@
       "source_file": "backend\\src\\routes\\classes.js",
       "source_location": "L1",
       "id": "backend_src_routes_classes_js",
-      "community": 35,
+      "community": 36,
       "norm_label": "classes.js"
     },
     {
@@ -902,7 +905,7 @@
       "source_file": "backend\\src\\routes\\index.js",
       "source_location": "L1",
       "id": "backend_src_routes_index_js",
-      "community": 36,
+      "community": 37,
       "norm_label": "index.js"
     },
     {
@@ -911,7 +914,7 @@
       "source_file": "backend\\src\\routes\\tasks.js",
       "source_location": "L1",
       "id": "backend_src_routes_tasks_js",
-      "community": 37,
+      "community": 38,
       "norm_label": "tasks.js"
     },
     {
@@ -920,7 +923,7 @@
       "source_file": "backend\\src\\routes\\timetable.js",
       "source_location": "L1",
       "id": "backend_src_routes_timetable_js",
-      "community": 38,
+      "community": 39,
       "norm_label": "timetable.js"
     },
     {
@@ -929,7 +932,7 @@
       "source_file": "backend\\src\\socket\\index.js",
       "source_location": "L1",
       "id": "backend_src_socket_index_js",
-      "community": 25,
+      "community": 27,
       "norm_label": "index.js"
     },
     {
@@ -938,7 +941,7 @@
       "source_file": "backend\\src\\socket\\index.js",
       "source_location": "L5",
       "id": "index_registersockethandlers",
-      "community": 25,
+      "community": 27,
       "norm_label": "registersockethandlers()"
     },
     {
@@ -947,7 +950,7 @@
       "source_file": "database\\migrate.js",
       "source_location": "L1",
       "id": "database_migrate_js",
-      "community": 26,
+      "community": 28,
       "norm_label": "migrate.js"
     },
     {
@@ -956,7 +959,7 @@
       "source_file": "database\\migrate.js",
       "source_location": "L14",
       "id": "migrate_migrate",
-      "community": 26,
+      "community": 28,
       "norm_label": "migrate()"
     },
     {
@@ -965,7 +968,7 @@
       "source_file": "frontend\\eslint.config.js",
       "source_location": "L1",
       "id": "frontend_eslint_config_js",
-      "community": 39,
+      "community": 40,
       "norm_label": "eslint.config.js"
     },
     {
@@ -974,7 +977,7 @@
       "source_file": "frontend\\postcss.config.js",
       "source_location": "L1",
       "id": "frontend_postcss_config_js",
-      "community": 40,
+      "community": 41,
       "norm_label": "postcss.config.js"
     },
     {
@@ -983,7 +986,7 @@
       "source_file": "frontend\\tailwind.config.js",
       "source_location": "L1",
       "id": "frontend_tailwind_config_js",
-      "community": 41,
+      "community": 42,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -992,7 +995,7 @@
       "source_file": "frontend\\vite.config.js",
       "source_location": "L1",
       "id": "frontend_vite_config_js",
-      "community": 42,
+      "community": 43,
       "norm_label": "vite.config.js"
     },
     {
@@ -1001,7 +1004,7 @@
       "source_file": "frontend\\src\\App.jsx",
       "source_location": "L1",
       "id": "frontend_src_app_jsx",
-      "community": 15,
+      "community": 16,
       "norm_label": "app.jsx"
     },
     {
@@ -1010,7 +1013,7 @@
       "source_file": "frontend\\src\\App.jsx",
       "source_location": "L12",
       "id": "app_readstorage",
-      "community": 15,
+      "community": 16,
       "norm_label": "readstorage()"
     },
     {
@@ -1019,7 +1022,7 @@
       "source_file": "frontend\\src\\App.jsx",
       "source_location": "L22",
       "id": "app_app",
-      "community": 15,
+      "community": 16,
       "norm_label": "app()"
     },
     {
@@ -1028,7 +1031,7 @@
       "source_file": "frontend\\src\\main.jsx",
       "source_location": "L1",
       "id": "frontend_src_main_jsx",
-      "community": 43,
+      "community": 44,
       "norm_label": "main.jsx"
     },
     {
@@ -1037,7 +1040,7 @@
       "source_file": "frontend\\src\\api\\attendance.js",
       "source_location": "L1",
       "id": "frontend_src_api_attendance_js",
-      "community": 14,
+      "community": 15,
       "norm_label": "attendance.js"
     },
     {
@@ -1046,7 +1049,7 @@
       "source_file": "frontend\\src\\api\\attendance.js",
       "source_location": "L9",
       "id": "attendance_generateqrtoken",
-      "community": 14,
+      "community": 15,
       "norm_label": "generateqrtoken()"
     },
     {
@@ -1055,7 +1058,7 @@
       "source_file": "frontend\\src\\api\\attendance.js",
       "source_location": "L28",
       "id": "attendance_scanqrtoken",
-      "community": 14,
+      "community": 15,
       "norm_label": "scanqrtoken()"
     },
     {
@@ -1064,7 +1067,7 @@
       "source_file": "frontend\\src\\api\\attendance.js",
       "source_location": "L46",
       "id": "attendance_getclassattendance",
-      "community": 14,
+      "community": 15,
       "norm_label": "getclassattendance()"
     },
     {
@@ -1073,7 +1076,7 @@
       "source_file": "frontend\\src\\api\\auth.js",
       "source_location": "L1",
       "id": "frontend_src_api_auth_js",
-      "community": 16,
+      "community": 17,
       "norm_label": "auth.js"
     },
     {
@@ -1082,7 +1085,7 @@
       "source_file": "frontend\\src\\api\\auth.js",
       "source_location": "L9",
       "id": "auth_login",
-      "community": 16,
+      "community": 17,
       "norm_label": "login()"
     },
     {
@@ -1091,7 +1094,7 @@
       "source_file": "frontend\\src\\api\\auth.js",
       "source_location": "L30",
       "id": "auth_register",
-      "community": 16,
+      "community": 17,
       "norm_label": "register()"
     },
     {
@@ -1100,7 +1103,7 @@
       "source_file": "frontend\\src\\api\\classes.js",
       "source_location": "L1",
       "id": "frontend_src_api_classes_js",
-      "community": 27,
+      "community": 29,
       "norm_label": "classes.js"
     },
     {
@@ -1109,7 +1112,7 @@
       "source_file": "frontend\\src\\api\\classes.js",
       "source_location": "L8",
       "id": "classes_getteacherclasses",
-      "community": 27,
+      "community": 29,
       "norm_label": "getteacherclasses()"
     },
     {
@@ -1118,7 +1121,7 @@
       "source_file": "frontend\\src\\api\\index.js",
       "source_location": "L1",
       "id": "frontend_src_api_index_js",
-      "community": 44,
+      "community": 45,
       "norm_label": "index.js"
     },
     {
@@ -1127,7 +1130,7 @@
       "source_file": "frontend\\src\\api\\timetable.js",
       "source_location": "L1",
       "id": "frontend_src_api_timetable_js",
-      "community": 28,
+      "community": 18,
       "norm_label": "timetable.js"
     },
     {
@@ -1136,8 +1139,17 @@
       "source_file": "frontend\\src\\api\\timetable.js",
       "source_location": "L8",
       "id": "timetable_gettodaytimetable",
-      "community": 28,
+      "community": 18,
       "norm_label": "gettodaytimetable()"
+    },
+    {
+      "label": "getTodaySuggestions()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\api\\timetable.js",
+      "source_location": "L26",
+      "id": "timetable_gettodaysuggestions",
+      "community": 18,
+      "norm_label": "gettodaysuggestions()"
     },
     {
       "label": "useAttendanceSocket.js",
@@ -1145,7 +1157,7 @@
       "source_file": "frontend\\src\\hooks\\useAttendanceSocket.js",
       "source_location": "L1",
       "id": "frontend_src_hooks_useattendancesocket_js",
-      "community": 29,
+      "community": 30,
       "norm_label": "useattendancesocket.js"
     },
     {
@@ -1154,7 +1166,7 @@
       "source_file": "frontend\\src\\hooks\\useAttendanceSocket.js",
       "source_location": "L14",
       "id": "useattendancesocket_useattendancesocket",
-      "community": 29,
+      "community": 30,
       "norm_label": "useattendancesocket()"
     },
     {
@@ -1163,7 +1175,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admindashboard_jsx",
-      "community": 7,
+      "community": 8,
       "norm_label": "admindashboard.jsx"
     },
     {
@@ -1172,7 +1184,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L7",
       "id": "admindashboard_homeicon",
-      "community": 7,
+      "community": 8,
       "norm_label": "homeicon()"
     },
     {
@@ -1181,7 +1193,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L8",
       "id": "admindashboard_usersicon",
-      "community": 7,
+      "community": 8,
       "norm_label": "usersicon()"
     },
     {
@@ -1190,7 +1202,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L9",
       "id": "admindashboard_settingsicon",
-      "community": 7,
+      "community": 8,
       "norm_label": "settingsicon()"
     },
     {
@@ -1199,7 +1211,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L10",
       "id": "admindashboard_filedownicon",
-      "community": 7,
+      "community": 8,
       "norm_label": "filedownicon()"
     },
     {
@@ -1208,7 +1220,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L11",
       "id": "admindashboard_logouticon",
-      "community": 7,
+      "community": 8,
       "norm_label": "logouticon()"
     },
     {
@@ -1217,7 +1229,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L42",
       "id": "admindashboard_card",
-      "community": 7,
+      "community": 8,
       "norm_label": "card()"
     },
     {
@@ -1226,7 +1238,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L46",
       "id": "admindashboard_dashboardview",
-      "community": 7,
+      "community": 8,
       "norm_label": "dashboardview()"
     },
     {
@@ -1235,7 +1247,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L72",
       "id": "admindashboard_usermanagementview",
-      "community": 7,
+      "community": 8,
       "norm_label": "usermanagementview()"
     },
     {
@@ -1244,7 +1256,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L106",
       "id": "admindashboard_settingsview",
-      "community": 7,
+      "community": 8,
       "norm_label": "settingsview()"
     },
     {
@@ -1253,7 +1265,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L127",
       "id": "admindashboard_reportsview",
-      "community": 7,
+      "community": 8,
       "norm_label": "reportsview()"
     },
     {
@@ -1262,7 +1274,7 @@
       "source_file": "frontend\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L147",
       "id": "admindashboard_admindashboard",
-      "community": 7,
+      "community": 8,
       "norm_label": "admindashboard()"
     },
     {
@@ -1271,7 +1283,7 @@
       "source_file": "frontend\\src\\pages\\Login.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_login_jsx",
-      "community": 30,
+      "community": 31,
       "norm_label": "login.jsx"
     },
     {
@@ -1280,7 +1292,7 @@
       "source_file": "frontend\\src\\pages\\Login.jsx",
       "source_location": "L10",
       "id": "login_login",
-      "community": 30,
+      "community": 31,
       "norm_label": "login()"
     },
     {
@@ -1289,7 +1301,7 @@
       "source_file": "frontend\\src\\pages\\QRScannerModal.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_qrscannermodal_jsx",
-      "community": 17,
+      "community": 19,
       "norm_label": "qrscannermodal.jsx"
     },
     {
@@ -1298,7 +1310,7 @@
       "source_file": "frontend\\src\\pages\\QRScannerModal.jsx",
       "source_location": "L6",
       "id": "qrscannermodal_xicon",
-      "community": 17,
+      "community": 19,
       "norm_label": "xicon()"
     },
     {
@@ -1307,7 +1319,7 @@
       "source_file": "frontend\\src\\pages\\QRScannerModal.jsx",
       "source_location": "L8",
       "id": "qrscannermodal_qrscannermodal",
-      "community": 17,
+      "community": 19,
       "norm_label": "qrscannermodal()"
     },
     {
@@ -1316,7 +1328,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_studentdashboard_jsx",
-      "community": 3,
+      "community": 2,
       "norm_label": "studentdashboard.jsx"
     },
     {
@@ -1325,7 +1337,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L11",
       "id": "studentdashboard_homeicon",
-      "community": 3,
+      "community": 2,
       "norm_label": "homeicon()"
     },
     {
@@ -1334,7 +1346,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L12",
       "id": "studentdashboard_calendaricon",
-      "community": 3,
+      "community": 2,
       "norm_label": "calendaricon()"
     },
     {
@@ -1343,7 +1355,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L13",
       "id": "studentdashboard_barcharticon",
-      "community": 3,
+      "community": 2,
       "norm_label": "barcharticon()"
     },
     {
@@ -1352,7 +1364,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L14",
       "id": "studentdashboard_bookopenicon",
-      "community": 3,
+      "community": 2,
       "norm_label": "bookopenicon()"
     },
     {
@@ -1361,7 +1373,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L15",
       "id": "studentdashboard_filetexticon",
-      "community": 3,
+      "community": 2,
       "norm_label": "filetexticon()"
     },
     {
@@ -1370,7 +1382,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L16",
       "id": "studentdashboard_helpcircleicon",
-      "community": 3,
+      "community": 2,
       "norm_label": "helpcircleicon()"
     },
     {
@@ -1379,7 +1391,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L17",
       "id": "studentdashboard_logouticon",
-      "community": 3,
+      "community": 2,
       "norm_label": "logouticon()"
     },
     {
@@ -1388,7 +1400,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L18",
       "id": "studentdashboard_clockicon",
-      "community": 3,
+      "community": 2,
       "norm_label": "clockicon()"
     },
     {
@@ -1397,7 +1409,7 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L19",
       "id": "studentdashboard_targeticon",
-      "community": 3,
+      "community": 2,
       "norm_label": "targeticon()"
     },
     {
@@ -1406,79 +1418,79 @@
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
       "source_location": "L20",
       "id": "studentdashboard_qrcodeicon",
-      "community": 3,
+      "community": 2,
       "norm_label": "qrcodeicon()"
     },
     {
       "label": "Card()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "id": "studentdashboard_card",
-      "community": 3,
+      "community": 2,
       "norm_label": "card()"
     },
     {
       "label": "DashboardView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L36",
+      "source_location": "L35",
       "id": "studentdashboard_dashboardview",
-      "community": 3,
+      "community": 2,
       "norm_label": "dashboardview()"
     },
     {
       "label": "AttendanceView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L102",
+      "source_location": "L106",
       "id": "studentdashboard_attendanceview",
-      "community": 3,
+      "community": 2,
       "norm_label": "attendanceview()"
     },
     {
       "label": "PerformanceView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L134",
+      "source_location": "L138",
       "id": "studentdashboard_performanceview",
-      "community": 3,
+      "community": 2,
       "norm_label": "performanceview()"
     },
     {
       "label": "ResourcesView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L151",
+      "source_location": "L155",
       "id": "studentdashboard_resourcesview",
-      "community": 3,
+      "community": 2,
       "norm_label": "resourcesview()"
     },
     {
       "label": "AssignmentsView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L168",
+      "source_location": "L172",
       "id": "studentdashboard_assignmentsview",
-      "community": 3,
+      "community": 2,
       "norm_label": "assignmentsview()"
     },
     {
       "label": "DoubtsView()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L198",
+      "source_location": "L202",
       "id": "studentdashboard_doubtsview",
-      "community": 3,
+      "community": 2,
       "norm_label": "doubtsview()"
     },
     {
       "label": "StudentDashboard()",
       "file_type": "code",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L227",
+      "source_location": "L231",
       "id": "studentdashboard_studentdashboard",
-      "community": 3,
+      "community": 2,
       "norm_label": "studentdashboard()"
     },
     {
@@ -1487,7 +1499,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_td_jsx",
-      "community": 5,
+      "community": 4,
       "norm_label": "td.jsx"
     },
     {
@@ -1496,7 +1508,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L5",
       "id": "td_homeicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "homeicon()"
     },
     {
@@ -1505,7 +1517,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L6",
       "id": "td_checksquareicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "checksquareicon()"
     },
     {
@@ -1514,7 +1526,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L7",
       "id": "td_boxicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "boxicon()"
     },
     {
@@ -1523,7 +1535,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L8",
       "id": "td_filetexticon",
-      "community": 5,
+      "community": 4,
       "norm_label": "filetexticon()"
     },
     {
@@ -1532,7 +1544,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L9",
       "id": "td_usersicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "usersicon()"
     },
     {
@@ -1541,7 +1553,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L10",
       "id": "td_messagesquareicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "messagesquareicon()"
     },
     {
@@ -1550,7 +1562,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L11",
       "id": "td_alerttriangleicon",
-      "community": 5,
+      "community": 4,
       "norm_label": "alerttriangleicon()"
     },
     {
@@ -1559,7 +1571,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L12",
       "id": "td_logouticon",
-      "community": 5,
+      "community": 4,
       "norm_label": "logouticon()"
     },
     {
@@ -1568,7 +1580,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L45",
       "id": "td_card",
-      "community": 5,
+      "community": 4,
       "norm_label": "card()"
     },
     {
@@ -1577,7 +1589,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L53",
       "id": "td_sidebar",
-      "community": 5,
+      "community": 4,
       "norm_label": "sidebar()"
     },
     {
@@ -1586,7 +1598,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L81",
       "id": "td_header",
-      "community": 5,
+      "community": 4,
       "norm_label": "header()"
     },
     {
@@ -1595,7 +1607,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L103",
       "id": "td_dashboardview",
-      "community": 5,
+      "community": 4,
       "norm_label": "dashboardview()"
     },
     {
@@ -1604,7 +1616,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L150",
       "id": "td_attendanceview",
-      "community": 5,
+      "community": 4,
       "norm_label": "attendanceview()"
     },
     {
@@ -1613,7 +1625,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L188",
       "id": "td_assignmentsview",
-      "community": 5,
+      "community": 4,
       "norm_label": "assignmentsview()"
     },
     {
@@ -1622,7 +1634,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L225",
       "id": "td_studentsview",
-      "community": 5,
+      "community": 4,
       "norm_label": "studentsview()"
     },
     {
@@ -1631,7 +1643,7 @@
       "source_file": "frontend\\src\\pages\\TD.jsx",
       "source_location": "L260",
       "id": "td_teacherdashboard",
-      "community": 5,
+      "community": 4,
       "norm_label": "teacherdashboard()"
     },
     {
@@ -1640,7 +1652,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_teacherdashboard_jsx",
-      "community": 1,
+      "community": 0,
       "norm_label": "teacherdashboard.jsx"
     },
     {
@@ -1649,7 +1661,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L11",
       "id": "teacherdashboard_homeicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "homeicon()"
     },
     {
@@ -1658,7 +1670,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L12",
       "id": "teacherdashboard_checksquareicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "checksquareicon()"
     },
     {
@@ -1667,7 +1679,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L13",
       "id": "teacherdashboard_barcharticon",
-      "community": 1,
+      "community": 0,
       "norm_label": "barcharticon()"
     },
     {
@@ -1676,7 +1688,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L14",
       "id": "teacherdashboard_uploadcloudicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "uploadcloudicon()"
     },
     {
@@ -1685,7 +1697,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L15",
       "id": "teacherdashboard_filetexticon",
-      "community": 1,
+      "community": 0,
       "norm_label": "filetexticon()"
     },
     {
@@ -1694,7 +1706,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L16",
       "id": "teacherdashboard_usersicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "usersicon()"
     },
     {
@@ -1703,7 +1715,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L17",
       "id": "teacherdashboard_messagesquareicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "messagesquareicon()"
     },
     {
@@ -1712,7 +1724,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L18",
       "id": "teacherdashboard_alerttriangleicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "alerttriangleicon()"
     },
     {
@@ -1721,7 +1733,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L19",
       "id": "teacherdashboard_logouticon",
-      "community": 1,
+      "community": 0,
       "norm_label": "logouticon()"
     },
     {
@@ -1730,7 +1742,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L20",
       "id": "teacherdashboard_qrcodeicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "qrcodeicon()"
     },
     {
@@ -1739,7 +1751,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L21",
       "id": "teacherdashboard_cameraicon",
-      "community": 1,
+      "community": 0,
       "norm_label": "cameraicon()"
     },
     {
@@ -1748,7 +1760,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L50",
       "id": "teacherdashboard_card",
-      "community": 1,
+      "community": 0,
       "norm_label": "card()"
     },
     {
@@ -1757,7 +1769,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L55",
       "id": "teacherdashboard_dashboardview",
-      "community": 1,
+      "community": 0,
       "norm_label": "dashboardview()"
     },
     {
@@ -1766,7 +1778,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L103",
       "id": "teacherdashboard_attendanceview",
-      "community": 1,
+      "community": 0,
       "norm_label": "attendanceview()"
     },
     {
@@ -1775,7 +1787,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L381",
       "id": "teacherdashboard_assignmentsview",
-      "community": 1,
+      "community": 0,
       "norm_label": "assignmentsview()"
     },
     {
@@ -1784,7 +1796,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L396",
       "id": "teacherdashboard_insightsview",
-      "community": 1,
+      "community": 0,
       "norm_label": "insightsview()"
     },
     {
@@ -1793,7 +1805,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L437",
       "id": "teacherdashboard_contentview",
-      "community": 1,
+      "community": 0,
       "norm_label": "contentview()"
     },
     {
@@ -1802,7 +1814,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L451",
       "id": "teacherdashboard_studentsview",
-      "community": 1,
+      "community": 0,
       "norm_label": "studentsview()"
     },
     {
@@ -1811,7 +1823,7 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L466",
       "id": "teacherdashboard_communicationview",
-      "community": 1,
+      "community": 0,
       "norm_label": "communicationview()"
     },
     {
@@ -1820,20 +1832,20 @@
       "source_file": "frontend\\src\\pages\\TeacherDashboard.jsx",
       "source_location": "L496",
       "id": "teacherdashboard_teacherdashboard",
-      "community": 1,
+      "community": 0,
       "norm_label": "teacherdashboard()"
     },
     {
       "label": "E-Shiksha Project",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "line 1-8",
-      "source_url": null,
-      "captured_at": null,
+      "source_location": "line 1-4",
+      "source_url": "https://eshiksha-murex.vercel.app/",
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "claude_eshiksha_project",
-      "community": 0,
+      "community": 10,
       "norm_label": "e-shiksha project"
     },
     {
@@ -1842,11 +1854,11 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 5",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "claude_teacher_attendance",
-      "community": 0,
+      "community": 7,
       "norm_label": "teacher attendance system"
     },
     {
@@ -1855,51 +1867,25 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 6",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "claude_student_productivity",
-      "community": 0,
+      "community": 10,
       "norm_label": "student productivity engine"
     },
     {
-      "label": "QR Code Attendance",
+      "label": "Monorepo Architecture",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "line 5, 165",
+      "source_location": "line 12-43",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_qr_attendance",
-      "community": 0,
-      "norm_label": "qr code attendance"
-    },
-    {
-      "label": "Facial Recognition Attendance",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 5, 166",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_facial_recognition",
-      "community": 0,
-      "norm_label": "facial recognition attendance"
-    },
-    {
-      "label": "AI Task Suggestions",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 6, 150",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_ai_task_suggestions",
-      "community": 0,
-      "norm_label": "ai task suggestions"
+      "id": "claude_monorepo",
+      "community": 5,
+      "norm_label": "monorepo architecture"
     },
     {
       "label": "React + Vite + Tailwind Frontend",
@@ -1907,11 +1893,11 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 15",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_frontend_stack",
-      "community": 9,
+      "id": "claude_frontend",
+      "community": 5,
       "norm_label": "react + vite + tailwind frontend"
     },
     {
@@ -1920,11 +1906,11 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 25",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_backend_stack",
-      "community": 9,
+      "id": "claude_backend",
+      "community": 5,
       "norm_label": "node.js + express + socket.io backend"
     },
     {
@@ -1933,64 +1919,77 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 32",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_flask_ai_service",
-      "community": 0,
+      "id": "claude_ai_service",
+      "community": 5,
       "norm_label": "python + flask ai service"
     },
     {
       "label": "PostgreSQL Database",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "line 36",
+      "source_location": "line 35",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_postgresql_database",
-      "community": 9,
+      "id": "claude_database",
+      "community": 5,
       "norm_label": "postgresql database"
+    },
+    {
+      "label": "QR Code Attendance",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_qr_attendance",
+      "community": 7,
+      "norm_label": "qr code attendance"
+    },
+    {
+      "label": "Facial Recognition Attendance",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_facial_recognition",
+      "community": 7,
+      "norm_label": "facial recognition attendance"
+    },
+    {
+      "label": "AI Task Suggestions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 6",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_ai_task_suggestions",
+      "community": 10,
+      "norm_label": "ai task suggestions"
     },
     {
       "label": "JWT Authentication",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "line 104, 163-164",
+      "source_location": "line 100-108",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "claude_jwt_auth",
-      "community": 9,
+      "community": 5,
       "norm_label": "jwt authentication"
-    },
-    {
-      "label": "Docker Deployment",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 41, 53",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_docker_deployment",
-      "community": 45,
-      "norm_label": "docker deployment"
-    },
-    {
-      "label": "Monorepo Architecture",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 12-42",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_monorepo_architecture",
-      "community": 9,
-      "norm_label": "monorepo architecture"
     },
     {
       "label": "Database Schema Plan",
@@ -1998,12 +1997,129 @@
       "source_file": "CLAUDE.md",
       "source_location": "line 171-179",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "claude_db_schema",
-      "community": 9,
+      "community": 5,
       "norm_label": "database schema plan"
+    },
+    {
+      "label": "Backend as Single Auth Source Rationale",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 163",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_rationale_backend_auth",
+      "community": 5,
+      "norm_label": "backend as single auth source rationale"
+    },
+    {
+      "label": "Frontend Never Talks to AI Service Rationale",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 162",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_rationale_no_direct_ai",
+      "community": 5,
+      "norm_label": "frontend never talks to ai service rationale"
+    },
+    {
+      "label": "QR Token 30s Expiry Rationale",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 164",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_rationale_qr_expiry",
+      "community": 7,
+      "norm_label": "qr token 30s expiry rationale"
+    },
+    {
+      "label": "Soft Deletes Only Rationale",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 158",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_rationale_soft_deletes",
+      "community": 5,
+      "norm_label": "soft deletes only rationale"
+    },
+    {
+      "label": "Student PII Encrypted at Rest Rationale",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 167",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_rationale_pii_encryption",
+      "community": 5,
+      "norm_label": "student pii encrypted at rest rationale"
+    },
+    {
+      "label": "Subagent Boundary Rules",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 183-191",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_subagent_boundaries",
+      "community": 5,
+      "norm_label": "subagent boundary rules"
+    },
+    {
+      "label": "Docker Deployment",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 41",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_docker",
+      "community": 5,
+      "norm_label": "docker deployment"
+    },
+    {
+      "label": "Marshmallow Input Validation",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 152",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "claude_marshmallow_validation",
+      "community": 5,
+      "norm_label": "marshmallow input validation"
+    },
+    {
+      "label": "E-Shiksha README",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "readme_eshiksha",
+      "community": 10,
+      "norm_label": "e-shiksha readme"
     },
     {
       "label": "Smart India Hackathon 2025",
@@ -2011,25 +2127,25 @@
       "source_file": "README.md",
       "source_location": "line 7",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "readme_sih_hackathon",
-      "community": 0,
+      "id": "readme_sih2025",
+      "community": 10,
       "norm_label": "smart india hackathon 2025"
     },
     {
-      "label": "My Day Timeline View",
+      "label": "My Day View Feature",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "line 25",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_my_day_view",
-      "community": 0,
-      "norm_label": "my day timeline view"
+      "community": 10,
+      "norm_label": "my day view feature"
     },
     {
       "label": "Smart Task Suggestions Feature",
@@ -2037,11 +2153,11 @@
       "source_file": "README.md",
       "source_location": "line 27",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_smart_task_suggestions",
-      "community": 0,
+      "community": 10,
       "norm_label": "smart task suggestions feature"
     },
     {
@@ -2050,11 +2166,11 @@
       "source_file": "README.md",
       "source_location": "line 29",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_qr_scanner",
-      "community": 0,
+      "community": 7,
       "norm_label": "qr attendance scanner"
     },
     {
@@ -2063,11 +2179,11 @@
       "source_file": "README.md",
       "source_location": "line 35",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_teacher_attendance_hub",
-      "community": 0,
+      "community": 7,
       "norm_label": "two-mode attendance hub"
     },
     {
@@ -2076,11 +2192,11 @@
       "source_file": "README.md",
       "source_location": "line 37",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_productivity_insights",
-      "community": 0,
+      "community": 10,
       "norm_label": "productivity insights dashboard"
     },
     {
@@ -2089,10 +2205,10 @@
       "source_file": "README.md",
       "source_location": "line 43",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "readme_admin_analytics",
+      "id": "readme_school_analytics",
       "community": 46,
       "norm_label": "school-wide analytics"
     },
@@ -2102,171 +2218,197 @@
       "source_file": "README.md",
       "source_location": "line 100-128",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "readme_face_recognition_local",
-      "community": 0,
+      "community": 7,
       "norm_label": "local face recognition script"
     },
     {
-      "label": "OpenCV + dlib ML Stack",
+      "label": "Tech Stack Overview",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "line 103, 65",
+      "source_location": "line 49-67",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "readme_opencv_dlib",
-      "community": 0,
-      "norm_label": "opencv + dlib ml stack"
+      "id": "readme_tech_stack",
+      "community": 10,
+      "norm_label": "tech stack overview"
     },
     {
       "label": "Flask Dependency",
-      "file_type": "document",
+      "file_type": "code",
       "source_file": "ai-service/requirements.txt",
       "source_location": "line 1",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "ai_reqs_flask",
-      "community": 0,
+      "community": 5,
       "norm_label": "flask dependency"
     },
     {
-      "label": "Anthropic SDK Dependency",
-      "file_type": "document",
+      "label": "Groq SDK Dependency",
+      "file_type": "code",
       "source_file": "ai-service/requirements.txt",
       "source_location": "line 2",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "ai_reqs_anthropic",
-      "community": 0,
-      "norm_label": "anthropic sdk dependency"
+      "id": "ai_reqs_groq",
+      "community": 5,
+      "norm_label": "groq sdk dependency"
     },
     {
-      "label": "Marshmallow Validation",
-      "file_type": "document",
+      "label": "Python-Dotenv Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/requirements.txt",
+      "source_location": "line 3",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "ai_reqs_dotenv",
+      "community": 47,
+      "norm_label": "python-dotenv dependency"
+    },
+    {
+      "label": "Marshmallow Dependency",
+      "file_type": "code",
       "source_file": "ai-service/requirements.txt",
       "source_location": "line 4",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "ai_reqs_marshmallow",
-      "community": 0,
-      "norm_label": "marshmallow validation"
+      "community": 5,
+      "norm_label": "marshmallow dependency"
+    },
+    {
+      "label": "OpenCV Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_opencv",
+      "community": 7,
+      "norm_label": "opencv dependency"
+    },
+    {
+      "label": "Dlib Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 2",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_dlib",
+      "community": 7,
+      "norm_label": "dlib dependency"
+    },
+    {
+      "label": "Pandas Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 3",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_pandas",
+      "community": 7,
+      "norm_label": "pandas dependency"
+    },
+    {
+      "label": "NumPy Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 4",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_numpy",
+      "community": 7,
+      "norm_label": "numpy dependency"
+    },
+    {
+      "label": "Pillow Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_pillow",
+      "community": 48,
+      "norm_label": "pillow dependency"
+    },
+    {
+      "label": "CMake Dependency",
+      "file_type": "code",
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 6",
+      "source_url": null,
+      "captured_at": "2026-04-15",
+      "author": null,
+      "contributor": null,
+      "id": "face_reqs_cmake",
+      "community": 7,
+      "norm_label": "cmake dependency"
     },
     {
       "label": "Face Recognition Setup Guide",
       "file_type": "document",
       "source_file": "ai-service/face_recognition/README.txt",
-      "source_location": "line 1-8",
+      "source_location": "line 1-10",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "face_setup_guide",
-      "community": 0,
+      "id": "face_readme_setup",
+      "community": 7,
       "norm_label": "face recognition setup guide"
     },
     {
-      "label": "OpenCV Dependency",
-      "file_type": "document",
-      "source_file": "ai-service/face_recognition/requirements.txt",
-      "source_location": "line 1",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "face_reqs_opencv",
-      "community": 0,
-      "norm_label": "opencv dependency"
-    },
-    {
-      "label": "dlib Dependency",
-      "file_type": "document",
-      "source_file": "ai-service/face_recognition/requirements.txt",
-      "source_location": "line 2",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "face_reqs_dlib",
-      "community": 0,
-      "norm_label": "dlib dependency"
-    },
-    {
-      "label": "Student Photos Guidelines",
+      "label": "Student Photos Directory Guide",
       "file_type": "document",
       "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/README.md",
       "source_location": "line 1-26",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
       "id": "student_photos_guide",
-      "community": 0,
-      "norm_label": "student photos guidelines"
+      "community": 7,
+      "norm_label": "student photos directory guide"
     },
     {
-      "label": "Backend as Single Auth Source Rationale",
+      "label": "Graph Report Summary",
       "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 163-164",
+      "source_file": "graphify-out/GRAPH_REPORT.md",
+      "source_location": "line 1-10",
       "source_url": null,
-      "captured_at": null,
+      "captured_at": "2026-04-15",
       "author": null,
       "contributor": null,
-      "id": "claude_rationale_backend_auth_source",
-      "community": 9,
-      "norm_label": "backend as single auth source rationale"
+      "id": "graph_report",
+      "community": 10,
+      "norm_label": "graph report summary"
     },
     {
-      "label": "QR Token 30s Expiry Rationale",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 165",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_rationale_qr_expiry",
-      "community": 0,
-      "norm_label": "qr token 30s expiry rationale"
-    },
-    {
-      "label": "Soft Deletes Only Rationale",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 158",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_rationale_soft_deletes",
-      "community": 9,
-      "norm_label": "soft deletes only rationale"
-    },
-    {
-      "label": "Frontend Never Talks to AI Service Rationale",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 162",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_rationale_no_direct_ai",
-      "community": 9,
-      "norm_label": "frontend never talks to ai service rationale"
-    },
-    {
-      "label": "Atharva Bajpai Student Photo",
+      "label": "Atharva Bajpai - Student Photo",
       "file_type": "image",
       "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
       "source_location": null,
@@ -2275,37 +2417,37 @@
       "author": null,
       "contributor": null,
       "id": "atharva_bajpai_student_photo",
-      "community": 10,
-      "norm_label": "atharva bajpai student photo"
+      "community": 11,
+      "norm_label": "atharva bajpai - student photo"
     },
     {
-      "label": "Student Photos Dataset",
+      "label": "Atharva Bajpai (Student)",
       "file_type": "image",
-      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/",
+      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "student_photos_dataset",
-      "community": 10,
-      "norm_label": "student photos dataset"
+      "id": "atharva_bajpai_student",
+      "community": 11,
+      "norm_label": "atharva bajpai (student)"
     },
     {
-      "label": "Face Recognition System",
+      "label": "Face Recognition Attendance System",
       "file_type": "image",
-      "source_file": "ai-service/face_recognition/",
+      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
       "id": "face_recognition_system",
-      "community": 10,
-      "norm_label": "face recognition system"
+      "community": 11,
+      "norm_label": "face recognition attendance system"
     },
     {
-      "label": "Vite Logo",
+      "label": "Vite Logo (Build Tool)",
       "file_type": "image",
       "source_file": "frontend/public/vite.svg",
       "source_location": null,
@@ -2314,34 +2456,21 @@
       "author": null,
       "contributor": null,
       "id": "vite_logo",
-      "community": 10,
-      "norm_label": "vite logo"
+      "community": 11,
+      "norm_label": "vite logo (build tool)"
     },
     {
-      "label": "React Logo",
+      "label": "Vite",
       "file_type": "image",
-      "source_file": "frontend/src/assets/react.svg",
+      "source_file": "frontend/public/vite.svg",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "react_logo",
-      "community": 10,
-      "norm_label": "react logo"
-    },
-    {
-      "label": "Frontend Application",
-      "file_type": "image",
-      "source_file": "frontend/",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "frontend_app",
-      "community": 10,
-      "norm_label": "frontend application"
+      "id": "vite_build_tool",
+      "community": 11,
+      "norm_label": "vite"
     },
     {
       "label": "E-Shiksha Dashboard Logo",
@@ -2352,12 +2481,12 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "eshiksha_logo",
-      "community": 10,
+      "id": "logo_dashboard_eshiksha",
+      "community": 11,
       "norm_label": "e-shiksha dashboard logo"
     },
     {
-      "label": "E-Shiksha Brand Identity",
+      "label": "E-Shiksha Education Platform",
       "file_type": "image",
       "source_file": "frontend/src/assets/logo dashboard.png",
       "source_location": null,
@@ -2365,9 +2494,48 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "eshiksha_brand",
-      "community": 10,
-      "norm_label": "e-shiksha brand identity"
+      "id": "eshiksha_project",
+      "community": 11,
+      "norm_label": "e-shiksha education platform"
+    },
+    {
+      "label": "React Logo (UI Framework)",
+      "file_type": "image",
+      "source_file": "frontend/src/assets/react.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "react_logo",
+      "community": 11,
+      "norm_label": "react logo (ui framework)"
+    },
+    {
+      "label": "React",
+      "file_type": "image",
+      "source_file": "frontend/src/assets/react.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "react_framework",
+      "community": 11,
+      "norm_label": "react"
+    },
+    {
+      "label": "Frontend Module",
+      "file_type": "image",
+      "source_file": "frontend/src/assets/react.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "frontend_module",
+      "community": 11,
+      "norm_label": "frontend module"
     }
   ],
   "links": [
@@ -3694,6 +3862,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\api\\timetable.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_src": "frontend_src_api_timetable_js",
+      "_tgt": "timetable_gettodaysuggestions",
+      "source": "frontend_src_api_timetable_js",
+      "target": "timetable_gettodaysuggestions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\hooks\\useAttendanceSocket.js",
       "source_location": "L14",
       "weight": 1.0,
@@ -3995,7 +4175,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_card",
@@ -4007,7 +4187,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L36",
+      "source_location": "L35",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_dashboardview",
@@ -4019,7 +4199,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L102",
+      "source_location": "L106",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_attendanceview",
@@ -4031,7 +4211,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L134",
+      "source_location": "L138",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_performanceview",
@@ -4043,7 +4223,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L151",
+      "source_location": "L155",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_resourcesview",
@@ -4055,7 +4235,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L168",
+      "source_location": "L172",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_assignmentsview",
@@ -4067,7 +4247,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L198",
+      "source_location": "L202",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_doubtsview",
@@ -4079,7 +4259,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend\\src\\pages\\StudentDashboard.jsx",
-      "source_location": "L227",
+      "source_location": "L231",
       "weight": 1.0,
       "_src": "frontend_src_pages_studentdashboard_jsx",
       "_tgt": "studentdashboard_studentdashboard",
@@ -4524,7 +4704,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "line 5",
+      "source_location": "line 4-5",
       "weight": 1.0,
       "_src": "claude_eshiksha_project",
       "_tgt": "claude_teacher_attendance",
@@ -4536,7 +4716,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "line 6",
+      "source_location": "line 4-6",
       "weight": 1.0,
       "_src": "claude_eshiksha_project",
       "_tgt": "claude_student_productivity",
@@ -4547,13 +4727,37 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "line 7",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 12",
       "weight": 1.0,
-      "_src": "readme_sih_hackathon",
+      "_src": "claude_eshiksha_project",
+      "_tgt": "claude_monorepo",
+      "source": "claude_eshiksha_project",
+      "target": "claude_monorepo"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "line 1",
+      "weight": 1.0,
+      "_src": "readme_eshiksha",
       "_tgt": "claude_eshiksha_project",
       "source": "claude_eshiksha_project",
-      "target": "readme_sih_hackathon"
+      "target": "readme_eshiksha"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "graphify-out/GRAPH_REPORT.md",
+      "source_location": "line 1",
+      "weight": 0.5,
+      "_src": "graph_report",
+      "_tgt": "claude_eshiksha_project",
+      "source": "claude_eshiksha_project",
+      "target": "graph_report"
     },
     {
       "relation": "references",
@@ -4582,10 +4786,10 @@
     {
       "relation": "semantically_similar_to",
       "confidence": "INFERRED",
-      "confidence_score": 0.85,
+      "confidence_score": 0.9,
       "source_file": "README.md",
       "source_location": "line 35",
-      "weight": 0.85,
+      "weight": 0.9,
       "_src": "readme_teacher_attendance_hub",
       "_tgt": "claude_teacher_attendance",
       "source": "claude_teacher_attendance",
@@ -4616,6 +4820,222 @@
       "target": "readme_productivity_insights"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 15",
+      "weight": 1.0,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_frontend",
+      "source": "claude_monorepo",
+      "target": "claude_frontend"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 25",
+      "weight": 1.0,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_backend",
+      "source": "claude_monorepo",
+      "target": "claude_backend"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 32",
+      "weight": 1.0,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_ai_service",
+      "source": "claude_monorepo",
+      "target": "claude_ai_service"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 35",
+      "weight": 1.0,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_database",
+      "source": "claude_monorepo",
+      "target": "claude_database"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 41",
+      "weight": 0.7,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_docker",
+      "source": "claude_monorepo",
+      "target": "claude_docker"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 183",
+      "weight": 0.8,
+      "_src": "claude_monorepo",
+      "_tgt": "claude_subagent_boundaries",
+      "source": "claude_monorepo",
+      "target": "claude_subagent_boundaries"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 121-125",
+      "weight": 1.0,
+      "_src": "claude_frontend",
+      "_tgt": "claude_backend",
+      "source": "claude_frontend",
+      "target": "claude_backend"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 162",
+      "weight": 1.0,
+      "_src": "claude_rationale_no_direct_ai",
+      "_tgt": "claude_frontend",
+      "source": "claude_frontend",
+      "target": "claude_rationale_no_direct_ai"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 100-108",
+      "weight": 1.0,
+      "_src": "claude_backend",
+      "_tgt": "claude_jwt_auth",
+      "source": "claude_backend",
+      "target": "claude_jwt_auth"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 107",
+      "weight": 0.9,
+      "_src": "claude_backend",
+      "_tgt": "claude_ai_service",
+      "source": "claude_backend",
+      "target": "claude_ai_service"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 163",
+      "weight": 1.0,
+      "_src": "claude_rationale_backend_auth",
+      "_tgt": "claude_backend",
+      "source": "claude_backend",
+      "target": "claude_rationale_backend_auth"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 162",
+      "weight": 1.0,
+      "_src": "claude_rationale_no_direct_ai",
+      "_tgt": "claude_ai_service",
+      "source": "claude_ai_service",
+      "target": "claude_rationale_no_direct_ai"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 152",
+      "weight": 0.8,
+      "_src": "claude_ai_service",
+      "_tgt": "claude_marshmallow_validation",
+      "source": "claude_ai_service",
+      "target": "claude_marshmallow_validation"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "ai-service/requirements.txt",
+      "source_location": "line 1",
+      "weight": 0.9,
+      "_src": "claude_ai_service",
+      "_tgt": "ai_reqs_flask",
+      "source": "claude_ai_service",
+      "target": "ai_reqs_flask"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ai-service/requirements.txt",
+      "source_location": "line 2",
+      "weight": 0.8,
+      "_src": "claude_ai_service",
+      "_tgt": "ai_reqs_groq",
+      "source": "claude_ai_service",
+      "target": "ai_reqs_groq"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "ai-service/requirements.txt",
+      "source_location": "line 4",
+      "weight": 0.9,
+      "_src": "claude_ai_service",
+      "_tgt": "ai_reqs_marshmallow",
+      "source": "claude_ai_service",
+      "target": "ai_reqs_marshmallow"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 171",
+      "weight": 1.0,
+      "_src": "claude_database",
+      "_tgt": "claude_db_schema",
+      "source": "claude_database",
+      "target": "claude_db_schema"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 164",
+      "weight": 1.0,
+      "_src": "claude_rationale_qr_expiry",
+      "_tgt": "claude_qr_attendance",
+      "source": "claude_qr_attendance",
+      "target": "claude_rationale_qr_expiry"
+    },
+    {
       "relation": "semantically_similar_to",
       "confidence": "INFERRED",
       "confidence_score": 0.9,
@@ -4628,52 +5048,16 @@
       "target": "readme_qr_scanner"
     },
     {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 165",
-      "weight": 1.0,
-      "_src": "claude_rationale_qr_expiry",
-      "_tgt": "claude_qr_attendance",
-      "source": "claude_qr_attendance",
-      "target": "claude_rationale_qr_expiry"
-    },
-    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "line 33, 150",
+      "source_location": "line 49",
       "weight": 1.0,
-      "_src": "claude_flask_ai_service",
-      "_tgt": "claude_facial_recognition",
-      "source": "claude_facial_recognition",
-      "target": "claude_flask_ai_service"
-    },
-    {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.9,
-      "source_file": "README.md",
-      "source_location": "line 100",
-      "weight": 0.9,
-      "_src": "readme_face_recognition_local",
-      "_tgt": "claude_facial_recognition",
+      "_src": "claude_facial_recognition",
+      "_tgt": "readme_face_recognition_local",
       "source": "claude_facial_recognition",
       "target": "readme_face_recognition_local"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 150",
-      "weight": 1.0,
-      "_src": "claude_flask_ai_service",
-      "_tgt": "claude_ai_task_suggestions",
-      "source": "claude_ai_task_suggestions",
-      "target": "claude_flask_ai_service"
     },
     {
       "relation": "semantically_similar_to",
@@ -4688,148 +5072,28 @@
       "target": "readme_smart_task_suggestions"
     },
     {
-      "relation": "implements",
+      "relation": "conceptually_related_to",
       "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "ai-service/requirements.txt",
-      "source_location": "line 2",
-      "weight": 0.8,
-      "_src": "ai_reqs_anthropic",
+      "confidence_score": 0.75,
+      "source_file": "README.md",
+      "source_location": "line 25",
+      "weight": 0.7,
+      "_src": "readme_my_day_view",
       "_tgt": "claude_ai_task_suggestions",
       "source": "claude_ai_task_suggestions",
-      "target": "ai_reqs_anthropic"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 15",
-      "weight": 1.0,
-      "_src": "claude_monorepo_architecture",
-      "_tgt": "claude_frontend_stack",
-      "source": "claude_frontend_stack",
-      "target": "claude_monorepo_architecture"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 25",
-      "weight": 1.0,
-      "_src": "claude_monorepo_architecture",
-      "_tgt": "claude_backend_stack",
-      "source": "claude_backend_stack",
-      "target": "claude_monorepo_architecture"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 104",
-      "weight": 1.0,
-      "_src": "claude_backend_stack",
-      "_tgt": "claude_jwt_auth",
-      "source": "claude_backend_stack",
-      "target": "claude_jwt_auth"
-    },
-    {
-      "relation": "shares_data_with",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 102",
-      "weight": 1.0,
-      "_src": "claude_backend_stack",
-      "_tgt": "claude_postgresql_database",
-      "source": "claude_backend_stack",
-      "target": "claude_postgresql_database"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 32",
-      "weight": 1.0,
-      "_src": "claude_monorepo_architecture",
-      "_tgt": "claude_flask_ai_service",
-      "source": "claude_flask_ai_service",
-      "target": "claude_monorepo_architecture"
-    },
-    {
-      "relation": "implements",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "ai-service/requirements.txt",
-      "source_location": "line 1",
-      "weight": 0.85,
-      "_src": "ai_reqs_flask",
-      "_tgt": "claude_flask_ai_service",
-      "source": "claude_flask_ai_service",
-      "target": "ai_reqs_flask"
-    },
-    {
-      "relation": "implements",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "ai-service/requirements.txt",
-      "source_location": "line 4",
-      "weight": 0.8,
-      "_src": "ai_reqs_marshmallow",
-      "_tgt": "claude_flask_ai_service",
-      "source": "claude_flask_ai_service",
-      "target": "ai_reqs_marshmallow"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 36",
-      "weight": 1.0,
-      "_src": "claude_monorepo_architecture",
-      "_tgt": "claude_postgresql_database",
-      "source": "claude_postgresql_database",
-      "target": "claude_monorepo_architecture"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 171",
-      "weight": 1.0,
-      "_src": "claude_db_schema",
-      "_tgt": "claude_postgresql_database",
-      "source": "claude_postgresql_database",
-      "target": "claude_db_schema"
+      "target": "readme_my_day_view"
     },
     {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "line 163-164",
+      "source_location": "line 163",
       "weight": 1.0,
-      "_src": "claude_rationale_backend_auth_source",
+      "_src": "claude_rationale_backend_auth",
       "_tgt": "claude_jwt_auth",
       "source": "claude_jwt_auth",
-      "target": "claude_rationale_backend_auth_source"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 162",
-      "weight": 1.0,
-      "_src": "claude_rationale_no_direct_ai",
-      "_tgt": "claude_monorepo_architecture",
-      "source": "claude_monorepo_architecture",
-      "target": "claude_rationale_no_direct_ai"
+      "target": "claude_rationale_backend_auth"
     },
     {
       "relation": "rationale_for",
@@ -4844,16 +5108,52 @@
       "target": "claude_rationale_soft_deletes"
     },
     {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 167",
+      "weight": 1.0,
+      "_src": "claude_rationale_pii_encryption",
+      "_tgt": "claude_db_schema",
+      "source": "claude_db_schema",
+      "target": "claude_rationale_pii_encryption"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ai-service/requirements.txt",
+      "source_location": "line 4",
+      "weight": 0.9,
+      "_src": "claude_marshmallow_validation",
+      "_tgt": "ai_reqs_marshmallow",
+      "source": "claude_marshmallow_validation",
+      "target": "ai_reqs_marshmallow"
+    },
+    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "line 25",
+      "source_location": "line 7",
       "weight": 1.0,
-      "_src": "readme_my_day_view",
-      "_tgt": "readme_smart_task_suggestions",
-      "source": "readme_my_day_view",
-      "target": "readme_smart_task_suggestions"
+      "_src": "readme_eshiksha",
+      "_tgt": "readme_sih2025",
+      "source": "readme_eshiksha",
+      "target": "readme_sih2025"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "line 49",
+      "weight": 1.0,
+      "_src": "readme_eshiksha",
+      "_tgt": "readme_tech_stack",
+      "source": "readme_eshiksha",
+      "target": "readme_tech_stack"
     },
     {
       "relation": "references",
@@ -4863,19 +5163,55 @@
       "source_location": "line 103",
       "weight": 1.0,
       "_src": "readme_face_recognition_local",
-      "_tgt": "readme_opencv_dlib",
+      "_tgt": "face_reqs_opencv",
       "source": "readme_face_recognition_local",
-      "target": "readme_opencv_dlib"
+      "target": "face_reqs_opencv"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/README.md",
-      "source_location": "line 1",
+      "source_file": "README.md",
+      "source_location": "line 103",
       "weight": 1.0,
-      "_src": "student_photos_guide",
-      "_tgt": "readme_face_recognition_local",
+      "_src": "readme_face_recognition_local",
+      "_tgt": "face_reqs_dlib",
+      "source": "readme_face_recognition_local",
+      "target": "face_reqs_dlib"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ai-service/face_recognition/requirements.txt",
+      "source_location": "line 3",
+      "weight": 0.7,
+      "_src": "readme_face_recognition_local",
+      "_tgt": "face_reqs_pandas",
+      "source": "readme_face_recognition_local",
+      "target": "face_reqs_pandas"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "line 112",
+      "weight": 1.0,
+      "_src": "readme_face_recognition_local",
+      "_tgt": "face_reqs_numpy",
+      "source": "readme_face_recognition_local",
+      "target": "face_reqs_numpy"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "line 117",
+      "weight": 0.8,
+      "_src": "readme_face_recognition_local",
+      "_tgt": "student_photos_guide",
       "source": "readme_face_recognition_local",
       "target": "student_photos_guide"
     },
@@ -4884,36 +5220,36 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "ai-service/face_recognition/README.txt",
-      "source_location": "line 1",
+      "source_location": "line 1-10",
       "weight": 1.0,
-      "_src": "face_setup_guide",
+      "_src": "face_readme_setup",
       "_tgt": "readme_face_recognition_local",
       "source": "readme_face_recognition_local",
-      "target": "face_setup_guide"
+      "target": "face_readme_setup"
     },
     {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "ai-service/face_recognition/requirements.txt",
-      "source_location": "line 1",
-      "weight": 1.0,
-      "_src": "face_reqs_opencv",
-      "_tgt": "readme_opencv_dlib",
-      "source": "readme_opencv_dlib",
-      "target": "face_reqs_opencv"
-    },
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "ai-service/face_recognition/requirements.txt",
-      "source_location": "line 2",
-      "weight": 1.0,
+      "source_location": "line 2,6",
+      "weight": 0.7,
       "_src": "face_reqs_dlib",
-      "_tgt": "readme_opencv_dlib",
-      "source": "readme_opencv_dlib",
-      "target": "face_reqs_dlib"
+      "_tgt": "face_reqs_cmake",
+      "source": "face_reqs_dlib",
+      "target": "face_reqs_cmake"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ai-service/face_recognition/README.txt",
+      "source_location": "line 6",
+      "weight": 0.9,
+      "_src": "face_readme_setup",
+      "_tgt": "student_photos_guide",
+      "source": "face_readme_setup",
+      "target": "student_photos_guide"
     },
     {
       "relation": "references",
@@ -4923,93 +5259,81 @@
       "source_location": null,
       "weight": 1.0,
       "_src": "atharva_bajpai_student_photo",
-      "_tgt": "student_photos_dataset",
+      "_tgt": "atharva_bajpai_student",
       "source": "atharva_bajpai_student_photo",
-      "target": "student_photos_dataset"
+      "target": "atharva_bajpai_student"
     },
     {
       "relation": "shares_data_with",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/",
+      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
       "source_location": null,
       "weight": 1.0,
-      "_src": "student_photos_dataset",
+      "_src": "atharva_bajpai_student_photo",
       "_tgt": "face_recognition_system",
-      "source": "student_photos_dataset",
+      "source": "atharva_bajpai_student_photo",
+      "target": "face_recognition_system"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
+      "source_location": null,
+      "weight": 0.9,
+      "_src": "atharva_bajpai_student",
+      "_tgt": "face_recognition_system",
+      "source": "atharva_bajpai_student",
       "target": "face_recognition_system"
     },
     {
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
-      "confidence_score": 0.75,
-      "source_file": "ai-service/face_recognition/",
+      "confidence_score": 0.85,
+      "source_file": "ai-service/face_recognition/smart_attendance_system/student_photos/atharva_bajpai.jpg",
       "source_location": null,
-      "weight": 0.7,
+      "weight": 0.9,
       "_src": "face_recognition_system",
-      "_tgt": "eshiksha_brand",
+      "_tgt": "eshiksha_project",
       "source": "face_recognition_system",
-      "target": "eshiksha_brand"
+      "target": "eshiksha_project"
     },
     {
       "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/public/vite.svg",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "vite_logo",
+      "_tgt": "vite_build_tool",
+      "source": "vite_logo",
+      "target": "vite_build_tool"
+    },
+    {
+      "relation": "implements",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
       "source_file": "frontend/public/vite.svg",
       "source_location": null,
-      "weight": 0.8,
-      "_src": "vite_logo",
-      "_tgt": "frontend_app",
-      "source": "vite_logo",
-      "target": "frontend_app"
-    },
-    {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "frontend/",
-      "source_location": null,
-      "weight": 0.7,
-      "_src": "vite_logo",
-      "_tgt": "react_logo",
-      "source": "vite_logo",
-      "target": "react_logo"
-    },
-    {
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "frontend/src/assets/react.svg",
-      "source_location": null,
-      "weight": 0.8,
-      "_src": "react_logo",
-      "_tgt": "frontend_app",
-      "source": "react_logo",
-      "target": "frontend_app"
-    },
-    {
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "frontend/src/assets/logo dashboard.png",
-      "source_location": null,
-      "weight": 0.8,
-      "_src": "eshiksha_logo",
-      "_tgt": "frontend_app",
-      "source": "frontend_app",
-      "target": "eshiksha_logo"
+      "weight": 0.9,
+      "_src": "vite_build_tool",
+      "_tgt": "frontend_module",
+      "source": "vite_build_tool",
+      "target": "frontend_module"
     },
     {
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "frontend/",
+      "source_file": "frontend/src/assets/react.svg",
       "source_location": null,
       "weight": 0.8,
-      "_src": "frontend_app",
-      "_tgt": "eshiksha_brand",
-      "source": "frontend_app",
-      "target": "eshiksha_brand"
+      "_src": "react_framework",
+      "_tgt": "vite_build_tool",
+      "source": "vite_build_tool",
+      "target": "react_framework"
     },
     {
       "relation": "references",
@@ -5018,22 +5342,72 @@
       "source_file": "frontend/src/assets/logo dashboard.png",
       "source_location": null,
       "weight": 1.0,
-      "_src": "eshiksha_logo",
-      "_tgt": "eshiksha_brand",
-      "source": "eshiksha_logo",
-      "target": "eshiksha_brand"
+      "_src": "logo_dashboard_eshiksha",
+      "_tgt": "eshiksha_project",
+      "source": "logo_dashboard_eshiksha",
+      "target": "eshiksha_project"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend/src/assets/logo dashboard.png",
+      "source_location": null,
+      "weight": 0.8,
+      "_src": "logo_dashboard_eshiksha",
+      "_tgt": "frontend_module",
+      "source": "logo_dashboard_eshiksha",
+      "target": "frontend_module"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "frontend/src/assets/logo dashboard.png",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "frontend_module",
+      "_tgt": "eshiksha_project",
+      "source": "eshiksha_project",
+      "target": "frontend_module"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/assets/react.svg",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "react_logo",
+      "_tgt": "react_framework",
+      "source": "react_logo",
+      "target": "react_framework"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "frontend/src/assets/react.svg",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "react_framework",
+      "_tgt": "frontend_module",
+      "source": "react_framework",
+      "target": "frontend_module"
     }
   ],
   "hyperedges": [
     {
-      "id": "attendance_system_flow",
+      "id": "attendance_system_pipeline",
       "label": "Attendance System Pipeline",
       "nodes": [
         "claude_teacher_attendance",
         "claude_qr_attendance",
         "claude_facial_recognition",
         "readme_teacher_attendance_hub",
-        "readme_face_recognition_local"
+        "readme_face_recognition_local",
+        "face_reqs_opencv",
+        "face_reqs_dlib"
       ],
       "relation": "participate_in",
       "confidence": "EXTRACTED",
@@ -5048,7 +5422,7 @@
         "claude_ai_task_suggestions",
         "readme_smart_task_suggestions",
         "readme_my_day_view",
-        "ai_reqs_anthropic"
+        "ai_reqs_groq"
       ],
       "relation": "participate_in",
       "confidence": "EXTRACTED",
@@ -5056,13 +5430,14 @@
       "source_file": "CLAUDE.md"
     },
     {
-      "id": "architecture_decisions",
+      "id": "architecture_decision_records",
       "label": "Architecture Decision Records",
       "nodes": [
-        "claude_rationale_backend_auth_source",
+        "claude_rationale_backend_auth",
         "claude_rationale_qr_expiry",
         "claude_rationale_soft_deletes",
-        "claude_rationale_no_direct_ai"
+        "claude_rationale_no_direct_ai",
+        "claude_rationale_pii_encryption"
       ],
       "relation": "form",
       "confidence": "EXTRACTED",

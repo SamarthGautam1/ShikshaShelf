@@ -2,3 +2,4 @@ export { login, register } from './auth.js';
 export { generateQRToken, scanQRToken, getClassAttendance } from './attendance.js';
 export { getTeacherClasses } from './classes.js';
 export { getTodayTimetable, getTodaySuggestions } from './timetable.js';
+export { getTeacherInsights, getClassInsights } from './insights.js';

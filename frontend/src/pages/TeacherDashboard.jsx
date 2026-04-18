@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import logo from '../assets/logo dashboard.png';
 import { generateQRToken } from '../api/attendance.js';
 import { getTeacherClasses } from '../api/classes.js';
+import { getTeacherInsights } from '../api/insights.js';
 import useAttendanceSocket from '../hooks/useAttendanceSocket.js';
 
 // --- Helper Components & Icons ---
@@ -40,11 +41,6 @@ const fullStudentsData = [
     { id: 103, name: 'Rohan Sharma', attendance: '72%', avgGrade: 'C', taskCompletion: '30%' },
     { id: 104, name: 'Vihaan Joshi', attendance: '91%', avgGrade: 'B+', taskCompletion: '78%' },
 ];
-const insightsData = {
-    taskCompletionRate: 78,
-    topStudents: ['Diya Mehta', 'Aarav Patel'],
-    commonStruggles: ['Calculus Derivatives', 'Advanced Statistics'],
-};
 
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
@@ -393,46 +389,107 @@ const AssignmentsView = () => (
     </Card>
 );
 
-const InsightsView = () => {
-    const chartData = [
-        { name: 'Completed Tasks', value: insightsData.taskCompletionRate, fill: '#22c55e' },
-        { name: 'Incomplete Tasks', value: 100 - insightsData.taskCompletionRate, fill: '#ef4444' },
-    ];
+const InsightsView = ({ token }) => {
+    const [insights, setInsights] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        async function fetchInsights() {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getTeacherInsights(token);
+                if (!cancelled) setInsights(data);
+            } catch (err) {
+                if (!cancelled) setError(err.message);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+        fetchInsights();
+        return () => { cancelled = true; };
+    }, [token]);
+
+    if (loading) {
+        return (
+            <Card>
+                <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-500 font-medium">Loading insights...</span>
+                </div>
+            </Card>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card>
+                <div className="text-center py-16">
+                    <p className="text-red-600 font-semibold mb-2">Failed to load insights</p>
+                    <p className="text-gray-500 text-sm">{error}</p>
+                </div>
+            </Card>
+        );
+    }
+
+    const totalStudents = insights.total_students ?? 0;
+    const classAttendance = insights.classes ?? [];
+    const atRiskList = insights.at_risk_students ?? [];
+
+    const attendanceChartData = classAttendance.map(c => ({
+        name: c.class_name,
+        value: c.attendance_rate,
+        fill: c.attendance_rate >= 75 ? '#22c55e' : c.attendance_rate >= 50 ? '#f59e0b' : '#ef4444',
+    }));
+
     return (
         <Card>
             <h2 className="font-bold text-xl mb-4">Student Productivity Insights</h2>
+            <div className="mb-6 bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">Total Students</p>
+                <p className="text-3xl font-bold text-blue-700">{totalStudents}</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h3 className="font-semibold text-lg mb-2">Free Period Task Completion Rate</h3>
-                    <div className="w-full h-80 bg-gray-50 p-4 rounded-lg">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" domain={[0, 100]} unit="%" />
-                                <YAxis type="category" dataKey="name" width={120} />
-                                <Tooltip cursor={{fill: 'rgba(239, 246, 255, 0.5)'}} contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }} />
-                                <Bar dataKey="value" barSize={40} name="Percentage" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                    <h3 className="font-semibold text-lg mb-2">Per-Class Attendance Rate</h3>
+                    {attendanceChartData.length > 0 ? (
+                        <div className="w-full h-80 bg-gray-50 p-4 rounded-lg">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={attendanceChartData} layout="vertical" margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" domain={[0, 100]} unit="%" />
+                                    <YAxis type="category" dataKey="name" width={140} />
+                                    <Tooltip cursor={{fill: 'rgba(239, 246, 255, 0.5)'}} contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }} />
+                                    <Bar dataKey="value" barSize={40} name="Attendance %" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-sm">No class attendance data available.</p>
+                    )}
                 </div>
                 <div>
-                    <h3 className="font-semibold text-lg mb-2">Engagement Highlights</h3>
-                    <div className="space-y-4">
-                        <div>
-                            <h4 className="font-medium text-gray-600 mb-2">Most Engaged Students</h4>
-                            <ul className="space-y-2">{insightsData.topStudents.map(name => <li key={name} className="bg-green-50 p-3 rounded-md text-green-800 font-semibold">{name}</li>)}</ul>
-                        </div>
-                        <div>
-                            <h4 className="font-medium text-gray-600 mb-2">Commonly Skipped Topics</h4>
-                            <ul className="space-y-2">{insightsData.commonStruggles.map(topic => <li key={topic} className="bg-red-50 p-3 rounded-md text-red-800 font-semibold">{topic}</li>)}</ul>
-                        </div>
-                    </div>
+                    <h3 className="font-semibold text-lg mb-2">At-Risk Students</h3>
+                    {atRiskList.length > 0 ? (
+                        <ul className="space-y-2">
+                            {atRiskList.map(student => (
+                                <li key={student.name} className="bg-red-50 p-3 rounded-md border border-red-100">
+                                    <p className="font-semibold text-red-800">{student.name}</p>
+                                    <p className="text-sm text-gray-600">Attendance: <span className="font-bold text-red-600">{student.attendance_rate}%</span></p>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-green-600 text-sm font-medium">No at-risk students detected.</p>
+                    )}
                 </div>
             </div>
         </Card>
     );
 };
+InsightsView.propTypes = { token: PropTypes.string.isRequired };
 
 const ContentView = () => (
     <Card>
@@ -511,7 +568,7 @@ export default function TeacherDashboard({ token, user, onLogout }) {
             case 'dashboard': return <DashboardView setActiveTab={setActiveTab} />;
             case 'attendance': return <AttendanceView token={token} />;
             case 'assignments': return <AssignmentsView />;
-            case 'insights': return <InsightsView />;
+            case 'insights': return <InsightsView token={token} />;
             case 'content': return <ContentView />;
             case 'students': return <StudentsView />;
             case 'communication': return <CommunicationView />;

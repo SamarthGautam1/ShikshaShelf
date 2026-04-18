@@ -17,6 +17,7 @@ router.use('/attendance', require('./attendance'));
 
 router.use('/timetable', require('./timetable'));
 router.use('/tasks', require('./tasks'));
+router.use('/insights', require('./insights'));
 // router.use('/resources', require('./resources'));
 
 module.exports = router;

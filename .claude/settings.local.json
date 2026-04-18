@@ -20,7 +20,19 @@
       "Bash(C:/Program Files/PostgreSQL/17/bin/psql.exe:*)",
       "Skill(claude-api)",
       "Bash(rm -f .graphify_detect.json .graphify_extract.json .graphify_ast.json .graphify_semantic.json .graphify_analysis.json .graphify_labels.json .graphify_python)",
-      "Bash(rm -f graphify-out/.graphify_chunk_01.json graphify-out/.graphify_chunk_02.json)"
+      "Bash(rm -f graphify-out/.graphify_chunk_01.json graphify-out/.graphify_chunk_02.json)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(pip show:*)",
+      "Bash(export PYTHONPATH='C:\\\\Users\\\\samar\\\\AppData\\\\Roaming\\\\Python\\\\Python310\\\\site-packages')",
+      "Bash(where python:*)",
+      "Read(//c/Program Files/Python310/**)",
+      "Read(//c/Users/samar/AppData/Local/Programs/Python/Python310/**)",
+      "Bash(/c/Program Files/Python310/python.exe:*)",
+      "Bash($PY:*)",
+      "Bash(PYTHONUTF8=1 $PY:*)",
+      "Bash(PYTHONIOENCODING=utf-8 $PY:*)",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Program Files/Python310/python.exe:*)"
     ]
   }
 }

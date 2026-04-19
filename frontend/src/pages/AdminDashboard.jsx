@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import logo from '../assets/logo dashboard.png';
-import { getAdminStats, getAdminUsers, getAttendanceReport } from '../api/admin.js';
+import { getAdminStats, getAdminUsers, getAttendanceReport, getAttendanceCSV } from '../api/admin.js';
 
 // --- Helper Components & Icons ---
 const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -216,34 +216,168 @@ const SettingsView = () => (
     </div>
 );
 
-const ReportsView = () => (
-     <Card>
-        <h2 className="font-bold text-xl mb-4">Generate Official Reports</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
-            <div className="space-y-4">
-                <div>
-                    <label className="text-sm font-medium text-gray-700">Report Type</label>
-                    <select className="mt-1 block w-full p-2 border rounded-md">
-                        <option>Monthly Attendance</option>
-                        <option>Student Performance Summary</option>
-                        <option>Task Engagement Report</option>
-                    </select>
+const RECENT_REPORTS_KEY = 'eshiksha_recent_reports';
+// Cap storage at 50 to prevent unbounded growth; UI only shows top 5.
+const RECENT_REPORTS_STORAGE_CAP = 50;
+
+const loadRecentReports = () => {
+    try {
+        const raw = localStorage.getItem(RECENT_REPORTS_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveRecentReports = (reports) => {
+    try {
+        localStorage.setItem(RECENT_REPORTS_KEY, JSON.stringify(reports));
+    } catch {
+        // ignore quota or serialization errors
+    }
+};
+
+const triggerBlobDownload = (blob, filename) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(objectUrl);
+};
+
+const formatGeneratedAt = (isoString) => {
+    try {
+        return new Date(isoString).toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    } catch {
+        return isoString;
+    }
+};
+
+const ReportsView = ({ token }) => {
+    const [downloading, setDownloading] = useState(false);
+    const [recentReports, setRecentReports] = useState([]);
+    const [redownloadingId, setRedownloadingId] = useState(null);
+
+    useEffect(() => {
+        setRecentReports(loadRecentReports());
+    }, []);
+
+    const recordReport = (type, name) => {
+        const entry = {
+            id: (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            type,
+            name,
+            generatedAt: new Date().toISOString(),
+        };
+        setRecentReports((prev) => {
+            const next = [entry, ...prev].slice(0, RECENT_REPORTS_STORAGE_CAP);
+            saveRecentReports(next);
+            return next;
+        });
+    };
+
+    const handleDownload = async () => {
+        setDownloading(true);
+        try {
+            const blob = await getAttendanceCSV(token);
+            triggerBlobDownload(blob, 'attendance-report.csv');
+            recordReport('attendance', 'Attendance Report');
+        } catch (err) {
+            alert(`Failed to download report: ${err.message || 'Unknown error'}`);
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    const handleRedownload = async (report) => {
+        setRedownloadingId(report.id);
+        try {
+            if (report.type === 'attendance') {
+                const blob = await getAttendanceCSV(token);
+                triggerBlobDownload(blob, 'attendance-report.csv');
+                recordReport(report.type, report.name);
+            } else {
+                alert(`Unsupported report type: ${report.type}`);
+            }
+        } catch (err) {
+            alert(`Failed to re-download report: ${err.message || 'Unknown error'}`);
+        } finally {
+            setRedownloadingId(null);
+        }
+    };
+
+    const visibleReports = recentReports.slice(0, 5);
+
+    return (
+        <Card>
+            <h2 className="font-bold text-xl mb-4">Generate Official Reports</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-sm font-medium text-gray-700">Report Type</label>
+                        <select className="mt-1 block w-full p-2 border rounded-md">
+                            <option>Monthly Attendance</option>
+                            <option>Student Performance Summary</option>
+                            <option>Task Engagement Report</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium text-gray-700">Date Range</label>
+                        <input type="date" className="mt-1 block w-full p-2 border rounded-md"/>
+                    </div>
+                    <button
+                        onClick={handleDownload}
+                        disabled={downloading}
+                        className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <FileDownIcon className="mr-2"/>{downloading ? 'Generating...' : 'Generate & Download Report'}
+                    </button>
                 </div>
                 <div>
-                    <label className="text-sm font-medium text-gray-700">Date Range</label>
-                    <input type="date" className="mt-1 block w-full p-2 border rounded-md"/>
+                    <h3 className="font-semibold mb-2">Recently Generated</h3>
+                    {visibleReports.length === 0 ? (
+                        <p className="text-center text-gray-500 p-8 border-2 border-dashed rounded-lg">No reports generated yet.</p>
+                    ) : (
+                        <ul className="border-2 border-dashed rounded-lg divide-y divide-gray-200">
+                            {visibleReports.map((report) => {
+                                const isRowDownloading = redownloadingId === report.id;
+                                return (
+                                    <li key={report.id} className="flex items-center justify-between p-3">
+                                        <div className="min-w-0 pr-3">
+                                            <p className="font-medium text-gray-800 truncate">{report.name}</p>
+                                            <p className="text-xs text-gray-500">{formatGeneratedAt(report.generatedAt)}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleRedownload(report)}
+                                            disabled={isRowDownloading}
+                                            className="bg-green-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                        >
+                                            {isRowDownloading ? 'Downloading...' : 'Re-download'}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
-                 <button className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center">
-                    <FileDownIcon className="mr-2"/>Generate & Download Report
-                </button>
             </div>
-            <div>
-                 <h3 className="font-semibold mb-2">Recently Generated</h3>
-                 <p className="text-center text-gray-500 p-8 border-2 border-dashed rounded-lg">No reports generated yet.</p>
-            </div>
-        </div>
-    </Card>
-);
+        </Card>
+    );
+};
+ReportsView.propTypes = { token: PropTypes.string.isRequired };
 
 
 // --- Main App Structure ---
@@ -261,7 +395,7 @@ export default function AdminDashboard({ token, user, onLogout }) {
             case 'dashboard': return <DashboardView token={token} />;
             case 'users': return <UserManagementView token={token} />;
             case 'settings': return <SettingsView />;
-            case 'reports': return <ReportsView />;
+            case 'reports': return <ReportsView token={token} />;
             default: return <DashboardView token={token} />;
         }
     };

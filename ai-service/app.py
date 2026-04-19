@@ -34,8 +34,20 @@ def health():
 # ---------------------------------------------------------------------------
 
 from task_suggestions.routes import task_suggestions_bp  # noqa: E402
+from face_recognition.recognizer import FaceRecognizer  # noqa: E402
+from face_recognition.routes import face_recognition_bp  # noqa: E402
 
 app.register_blueprint(task_suggestions_bp, url_prefix="/api/v1/task-suggestions")
+
+# Instantiate the face recognizer once at startup so dlib models and student
+# reference encodings are loaded a single time for the lifetime of the process.
+try:
+    app.face_recognizer = FaceRecognizer()
+    app.register_blueprint(face_recognition_bp, url_prefix="/api/v1/face-recognition")
+except FileNotFoundError as exc:
+    # Model weights missing — log and continue so the rest of the service still boots.
+    app.logger.error("Face recognizer could not start: %s", exc)
+    app.face_recognizer = None
 
 
 # ---------------------------------------------------------------------------

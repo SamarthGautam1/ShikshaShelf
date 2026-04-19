@@ -55,3 +55,20 @@ export async function getAttendanceReport(token) {
   }
   return body.data;
 }
+
+/**
+ * Download the attendance report as a CSV file.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<Blob>} CSV file as a Blob.
+ */
+export async function getAttendanceCSV(token) {
+  const res = await fetch(`${BASE_URL}/api/admin/reports/attendance`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error('Failed to download attendance report');
+  }
+  return res.blob();
+}

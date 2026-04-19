@@ -32,7 +32,11 @@
       "Bash($PY:*)",
       "Bash(PYTHONUTF8=1 $PY:*)",
       "Bash(PYTHONIOENCODING=utf-8 $PY:*)",
-      "Bash(PYTHONIOENCODING=utf-8 /c/Program Files/Python310/python.exe:*)"
+      "Bash(PYTHONIOENCODING=utf-8 /c/Program Files/Python310/python.exe:*)",
+      "Bash(node --check src/models/attendance.js)",
+      "Bash(node --check src/controllers/attendance.js)",
+      "Bash(node --check src/routes/attendance.js)",
+      "Bash(node -e \"require\\('./src/routes/attendance'\\); require\\('./src/routes/timetable'\\); require\\('./src/routes/classes'\\); require\\('./src/controllers/attendance'\\); require\\('./src/controllers/timetable'\\); require\\('./src/models/attendance'\\); require\\('./src/models/timetable'\\); console.log\\('ok'\\);\")"
     ]
   }
 }

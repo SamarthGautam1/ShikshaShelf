@@ -61,9 +61,29 @@ function getStudentEntriesForDay(studentId, dayOfWeek) {
   );
 }
 
+/**
+ * Fetches today's timetable entries across all classes owned by a teacher.
+ * @param {string} teacherId - UUID of the teacher
+ * @param {number} dayOfWeek - 0 (Monday) through 4 (Friday)
+ * @returns {Promise<import('pg').QueryResult>}
+ */
+function getTeacherEntriesForDay(teacherId, dayOfWeek) {
+  return db.query(
+    `SELECT te.id, te.class_id, te.day_of_week, te.start_time, te.end_time, te.room,
+            c.name AS class_name, c.subject
+     FROM timetable_entries te
+     JOIN classes c ON c.id = te.class_id
+     WHERE c.teacher_id = $1
+       AND te.day_of_week = $2
+     ORDER BY te.start_time`,
+    [teacherId, dayOfWeek],
+  );
+}
+
 module.exports = {
   getByClassId,
   create,
   deleteById,
   getStudentEntriesForDay,
+  getTeacherEntriesForDay,
 };

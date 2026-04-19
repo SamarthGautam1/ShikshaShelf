@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { param, body, validationResult } = require('express-validator');
 const db = require('../db');
 const authMiddleware = require('../middleware/auth');
+const attendanceController = require('../controllers/attendance');
 
 const router = Router();
 
@@ -11,6 +12,13 @@ const QR_EXPIRY_MS = 30 * 1000;
 
 // All attendance routes require authentication
 router.use(authMiddleware);
+
+/**
+ * GET /api/attendance/me/summary
+ * Student-only. Returns the logged-in student's overall and per-class
+ * attendance summary.
+ */
+router.get('/me/summary', attendanceController.getMyAttendanceSummary);
 
 /**
  * POST /api/attendance/qr/generate
@@ -128,6 +136,36 @@ router.post(
     }
   },
 );
+
+/**
+ * POST /api/attendance/face/recognize
+ * Teacher/admin only. Proxies an image to the Flask AI service, then marks
+ * attendance for each recognized student.
+ */
+router.post(
+  '/face/recognize',
+  (req, res, next) => {
+    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Only teachers and admins can mark face attendance' });
+    }
+    next();
+  },
+  attendanceController.recognizeFaces,
+);
+
+/**
+ * POST /api/attendance/session/close
+ * Teacher-only. Inserts 'absent' for every enrolled student who has no
+ * attendance record for today. Emits `attendance:session-closed` on
+ * `attendance:<class_id>`.
+ */
+router.post('/session/close', attendanceController.closeSession);
+
+/**
+ * POST /api/attendance/manual
+ * Teacher or admin only. Upserts a manual attendance record.
+ */
+router.post('/manual', attendanceController.manualMark);
 
 /**
  * GET /api/attendance/class/:classId

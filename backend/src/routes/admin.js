@@ -159,4 +159,64 @@ router.get('/attendance/report', async (req, res, next) => {
   }
 });
 
+/**
+ * Escapes a single CSV field per RFC 4180: fields containing commas, quotes,
+ * CR, or LF are wrapped in double quotes and any embedded double quotes are
+ * doubled. null/undefined render as empty. Other values are coerced to string.
+ */
+function csvEscape(value) {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (/[",\r\n]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+/**
+ * GET /api/admin/reports/attendance
+ * Admin-only. Streams a CSV attendance report of every attendance record
+ * joined with student, class, and teacher. Ordered by marked_at DESC.
+ */
+router.get('/reports/attendance', async (req, res, next) => {
+  try {
+    const result = await db.query(
+      `SELECT
+         student.name AS student_name,
+         c.name       AS class_name,
+         teacher.name AS teacher_name,
+         ar.date      AS date,
+         ar.method    AS method,
+         ar.marked_at AS marked_at
+       FROM attendance_records ar
+       JOIN users   student ON student.id = ar.student_id
+       JOIN classes c       ON c.id = ar.class_id
+       JOIN users   teacher ON teacher.id = c.teacher_id
+       ORDER BY ar.marked_at DESC`,
+    );
+
+    const header = 'student_name,class_name,teacher_name,date,method,marked_at';
+    const lines = result.rows.map((row) => [
+      csvEscape(row.student_name),
+      csvEscape(row.class_name),
+      csvEscape(row.teacher_name),
+      csvEscape(row.date instanceof Date ? row.date.toISOString().slice(0, 10) : row.date),
+      csvEscape(row.method),
+      csvEscape(row.marked_at instanceof Date ? row.marked_at.toISOString() : row.marked_at),
+    ].join(','));
+
+    const csv = [header, ...lines].join('\r\n') + '\r\n';
+
+    const today = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="attendance_report_${today}.csv"`,
+    );
+    res.status(200).send(csv);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

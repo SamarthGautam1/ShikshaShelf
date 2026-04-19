@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from '../assets/logo dashboard.png';
-import { generateQRToken } from '../api/attendance.js';
-import { getTeacherClasses } from '../api/classes.js';
+import { generateQRToken, recognizeFace } from '../api/attendance.js';
+import { getTeacherClasses, getTeacherStudents } from '../api/classes.js';
 import { getTeacherInsights } from '../api/insights.js';
+import { getTeacherTodayTimetable } from '../api/timetable.js';
 import useAttendanceSocket from '../hooks/useAttendanceSocket.js';
 
 // --- Helper Components & Icons ---
@@ -23,10 +24,6 @@ const CameraIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 
 // --- MOCK DATA ---
 const teacherUser = { name: 'Anjali Desai', subject: 'Advanced Mathematics' };
-const atRiskStudents = [
-    { name: 'Rohan Sharma', reason: 'Attendance dropped by 20% this month.' },
-    { name: 'Priya Singh', reason: 'Has not completed any suggested tasks in 2 weeks.' },
-];
 const assignmentsData = [
     { id: 1, title: 'Calculus Problem Set 4', class: 'B.Sc Sem III', due: '2025-09-20', submissions: '35/41' },
     { id: 2, title: 'Lab Report: Statistical Models', class: 'B.Sc Sem III', due: '2025-09-25', submissions: '12/40' },
@@ -35,63 +32,123 @@ const contentData = [
     { id: 1, title: 'Lecture Notes: Derivatives', type: 'PDF', subject: 'Calculus', uploaded: '2025-09-10' },
     { id: 2, title: 'Intro to Bayes\' Theorem', type: 'Video Link', subject: 'Statistics', uploaded: '2025-09-12' },
 ];
-const fullStudentsData = [
-    { id: 101, name: 'Aarav Patel', attendance: '95%', avgGrade: 'A', taskCompletion: '85%' },
-    { id: 102, name: 'Diya Mehta', attendance: '98%', avgGrade: 'A+', taskCompletion: '92%' },
-    { id: 103, name: 'Rohan Sharma', attendance: '72%', avgGrade: 'C', taskCompletion: '30%' },
-    { id: 104, name: 'Vihaan Joshi', attendance: '91%', avgGrade: 'B+', taskCompletion: '78%' },
-];
-
 // --- Reusable Components ---
 const Card = ({ children, className }) => <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>{children}</div>;
 Card.propTypes = { children: PropTypes.node, className: PropTypes.string };
 
 // --- View Components ---
 
-const DashboardView = ({ setActiveTab }) => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-            <Card>
-                <h2 className="font-bold text-lg mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button onClick={() => setActiveTab('attendance')} className="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-                        <CheckSquareIcon className="w-8 h-8 text-blue-600"/>
-                        <span className="mt-2 text-sm font-semibold text-blue-800 text-center">Start Attendance</span>
-                    </button>
-                     <button onClick={() => setActiveTab('assignments')} className="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-                        <FileTextIcon className="w-8 h-8 text-green-600"/>
-                        <span className="mt-2 text-sm font-semibold text-green-800 text-center">New Assignment</span>
-                    </button>
-                     <button onClick={() => setActiveTab('communication')} className="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-                        <MessageSquareIcon className="w-8 h-8 text-purple-600"/>
-                        <span className="mt-2 text-sm font-semibold text-purple-800 text-center">Send Announcement</span>
-                    </button>
-                    <button onClick={() => setActiveTab('content')} className="flex flex-col items-center justify-center p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">
-                        <UploadCloudIcon className="w-8 h-8 text-yellow-600"/>
-                        <span className="mt-2 text-sm font-semibold text-yellow-800 text-center">Upload Content</span>
-                    </button>
-                </div>
-            </Card>
-             <Card>
-                <h2 className="font-bold text-lg mb-4">Today&apos;s Schedule</h2>
-                <p className="text-gray-500">Your scheduled classes for today will appear here.</p>
+const DashboardView = ({ setActiveTab, token }) => {
+    const [timetable, setTimetable] = useState(null);
+    const [insights, setInsights] = useState(null);
+    const [timetableLoading, setTimetableLoading] = useState(true);
+    const [insightsLoading, setInsightsLoading] = useState(true);
+    const [timetableError, setTimetableError] = useState(null);
+    const [insightsError, setInsightsError] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setTimetableLoading(true);
+        setInsightsLoading(true);
+        setTimetableError(null);
+        setInsightsError(null);
+
+        const timetablePromise = getTeacherTodayTimetable(token)
+            .then((data) => { if (!cancelled) setTimetable(data); })
+            .catch((err) => { if (!cancelled) setTimetableError(err.message); })
+            .finally(() => { if (!cancelled) setTimetableLoading(false); });
+
+        const insightsPromise = getTeacherInsights(token)
+            .then((data) => { if (!cancelled) setInsights(data); })
+            .catch((err) => { if (!cancelled) setInsightsError(err.message); })
+            .finally(() => { if (!cancelled) setInsightsLoading(false); });
+
+        Promise.all([timetablePromise, insightsPromise]);
+        return () => { cancelled = true; };
+    }, [token]);
+
+    const entries = timetable?.entries ?? [];
+    const atRiskList = insights?.at_risk_students ?? [];
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+                <Card>
+                    <h2 className="font-bold text-lg mb-4">Quick Actions</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onClick={() => setActiveTab('attendance')} className="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                            <CheckSquareIcon className="w-8 h-8 text-blue-600"/>
+                            <span className="mt-2 text-sm font-semibold text-blue-800 text-center">Start Attendance</span>
+                        </button>
+                         <button onClick={() => setActiveTab('assignments')} className="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                            <FileTextIcon className="w-8 h-8 text-green-600"/>
+                            <span className="mt-2 text-sm font-semibold text-green-800 text-center">New Assignment</span>
+                        </button>
+                         <button onClick={() => setActiveTab('communication')} className="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                            <MessageSquareIcon className="w-8 h-8 text-purple-600"/>
+                            <span className="mt-2 text-sm font-semibold text-purple-800 text-center">Send Announcement</span>
+                        </button>
+                        <button onClick={() => setActiveTab('content')} className="flex flex-col items-center justify-center p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">
+                            <UploadCloudIcon className="w-8 h-8 text-yellow-600"/>
+                            <span className="mt-2 text-sm font-semibold text-yellow-800 text-center">Upload Content</span>
+                        </button>
+                    </div>
+                </Card>
+                 <Card>
+                    <h2 className="font-bold text-lg mb-4">Today&apos;s Schedule</h2>
+                    {timetableLoading ? (
+                        <div className="flex items-center py-2">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                            <span className="ml-3 text-gray-500 text-sm">Loading schedule...</span>
+                        </div>
+                    ) : timetableError ? (
+                        <p className="text-red-600 text-sm">Failed to load schedule: {timetableError}</p>
+                    ) : entries.length === 0 ? (
+                        <p className="text-gray-500">No classes scheduled for today.</p>
+                    ) : (
+                        <ul className="space-y-3">
+                            {entries.map((entry, i) => (
+                                <li key={i} className="flex items-start justify-between bg-gray-50 p-3 rounded-lg">
+                                    <div>
+                                        <p className="font-bold text-gray-800">{entry.class_name}</p>
+                                        <p className="text-sm text-gray-500">{entry.room}</p>
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">
+                                        {(entry.start_time || '').slice(0, 5)} - {(entry.end_time || '').slice(0, 5)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Card>
+            </div>
+            <Card className="lg:col-span-1 bg-orange-50 border-l-4 border-orange-400">
+                <h2 className="font-bold text-lg mb-4 text-orange-800 flex items-center"><AlertTriangleIcon className="mr-2"/>AI Productivity Insights</h2>
+                <p className="text-sm text-gray-600 mb-4">Students flagged for low engagement with suggested free-period tasks.</p>
+                {insightsLoading ? (
+                    <div className="flex items-center py-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-600"></div>
+                        <span className="ml-3 text-gray-500 text-sm">Loading insights...</span>
+                    </div>
+                ) : insightsError ? (
+                    <p className="text-red-600 text-sm">Failed to load insights: {insightsError}</p>
+                ) : atRiskList.length === 0 ? (
+                    <p className="text-green-600 text-sm font-medium">No at-risk students detected.</p>
+                ) : (
+                    <ul className="space-y-2">
+                        {atRiskList.map(student => (
+                            <li key={student.name} className="bg-red-50 p-3 rounded-md border border-red-100">
+                                <p className="font-semibold text-red-800">{student.name}</p>
+                                <p className="text-sm text-gray-600">Attendance: <span className="font-bold text-red-600">{student.attendance_rate}%</span></p>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </Card>
         </div>
-        <Card className="lg:col-span-1 bg-orange-50 border-l-4 border-orange-400">
-            <h2 className="font-bold text-lg mb-4 text-orange-800 flex items-center"><AlertTriangleIcon className="mr-2"/>AI Productivity Insights</h2>
-            <p className="text-sm text-gray-600 mb-4">Students flagged for low engagement with suggested free-period tasks.</p>
-             <ul className="space-y-4">
-                 {atRiskStudents.map((student, i) => (
-                    <li key={i} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                        <p className="font-bold text-gray-800">{student.name}</p>
-                        <p className="text-sm text-orange-700">{student.reason}</p>
-                    </li>
-                 ))}
-             </ul>
-        </Card>
-    </div>
-);
-DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired };
+    );
+};
+DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired, token: PropTypes.string.isRequired };
 
 /** @constant {number} QR session duration in seconds */
 const QR_SESSION_DURATION = 30;
@@ -108,7 +165,13 @@ const AttendanceView = ({ token }) => {
     const [classesError, setClassesError] = useState('');
     const [countdown, setCountdown] = useState(QR_SESSION_DURATION);
     const [sessionExpired, setSessionExpired] = useState(false);
+    const [unknownCount, setUnknownCount] = useState(0);
+    const [faceError, setFaceError] = useState('');
     const timerRef = useRef(null);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+    const streamRef = useRef(null);
+    const captureIntervalRef = useRef(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -175,6 +238,29 @@ const AttendanceView = ({ token }) => {
         }, 1000);
     }, [clearTimer]);
 
+    /**
+     * Tear down the camera capture loop and release the MediaStream.
+     * Safe to call multiple times — no-op if nothing is active.
+     */
+    const stopFaceCapture = useCallback(() => {
+        if (captureIntervalRef.current) {
+            clearInterval(captureIntervalRef.current);
+            captureIntervalRef.current = null;
+        }
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+    }, []);
+
+    // Ensure the camera is always released when this view unmounts mid-scan.
+    useEffect(() => {
+        return () => stopFaceCapture();
+    }, [stopFaceCapture]);
+
     const startQRSession = async () => {
         if (!selectedClassId) return;
         console.log('Starting QR session — classId:', selectedClassId);
@@ -198,18 +284,78 @@ const AttendanceView = ({ token }) => {
         }
     };
 
-    const startFace = () => {
+    /**
+     * Capture the current video frame, encode it as base64 JPEG, and POST
+     * it to the backend face-recognition endpoint. Updates `unknownCount`
+     * with the LATEST frame's count (not cumulative) so the teacher sees
+     * how many unmatched faces the camera is currently seeing.
+     * Recognized students flow back via the existing socket roster.
+     */
+    const captureAndRecognize = useCallback(async () => {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas || video.readyState < 2 || !selectedClassId) return;
+
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        if (!width || !height) return;
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const base64 = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+
+        try {
+            const res = await recognizeFace(base64, selectedClassId, token);
+            if (res.success) {
+                setUnknownCount(res.data?.unknown_count ?? 0);
+                setFaceError('');
+            } else {
+                setFaceError(res.error || 'Face recognition failed.');
+            }
+        } catch {
+            setFaceError('Could not reach the server for face recognition.');
+        }
+    }, [selectedClassId, token]);
+
+    const startFace = async () => {
         if (!selectedClassId) return;
-        setMode('face');
-        setSessionActive(true);
+        setFaceError('');
+        setUnknownCount(0);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            streamRef.current = stream;
+            setMode('face');
+            setSessionActive(true);
+
+            // Wait a tick so React renders the <video> element before we attach.
+            setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play().catch(() => {});
+                }
+                captureIntervalRef.current = setInterval(captureAndRecognize, 3000);
+            }, 0);
+        } catch (err) {
+            const message = err?.name === 'NotAllowedError'
+                ? 'Camera permission denied. Please allow camera access and try again.'
+                : 'Unable to access camera. Please check your device and try again.';
+            setFaceError(message);
+        }
     };
 
     const stopSession = () => {
         clearTimer();
+        stopFaceCapture();
         setMode(null);
         setSessionActive(false);
         setQrToken('');
         setQrError('');
+        setFaceError('');
+        setUnknownCount(0);
         setCountdown(QR_SESSION_DURATION);
         setSessionExpired(false);
     };
@@ -290,6 +436,12 @@ const AttendanceView = ({ token }) => {
                 </div>
             )}
 
+            {faceError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {faceError}
+                </div>
+            )}
+
             {mode === 'qr' && qrToken && (
                 <div className="text-center p-6 bg-gray-100 rounded-lg">
                     <h3 className="font-semibold mb-4">Project this QR Code for students to scan.</h3>
@@ -331,9 +483,19 @@ const AttendanceView = ({ token }) => {
             {mode === 'face' && (
                 <div className="text-center p-6 bg-gray-100 rounded-lg">
                     <h3 className="font-semibold mb-4">Facial Recognition Scan Active</h3>
-                    <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center text-white">
-                        (Live camera feed placeholder for prototype)
+                    <div className="w-full max-w-2xl mx-auto bg-gray-800 rounded-lg overflow-hidden">
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-64 object-cover bg-black"
+                        />
                     </div>
+                    <canvas ref={canvasRef} className="hidden" />
+                    <p className="mt-3 text-sm text-gray-700">
+                        Unknown faces detected: <span className="font-semibold">{unknownCount}</span>
+                    </p>
                     <div className="mt-3 flex items-center justify-center space-x-2">
                         <span className={`inline-block w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
                         <span className="text-sm text-gray-600">
@@ -505,20 +667,57 @@ const ContentView = () => (
     </Card>
 );
 
-const StudentsView = () => (
-    <Card>
-        <div className="flex justify-between items-center mb-6"><h2 className="font-bold text-xl">Student Roster</h2><input type="text" placeholder="Search for a student..." className="p-2 border rounded-md w-64"/></div>
-        <div className="overflow-x-auto"><table className="min-w-full bg-white"><thead className="bg-gray-100"><tr>
-            <th className="text-left py-3 px-4 font-semibold text-sm">ID</th><th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
-            <th className="text-left py-3 px-4 font-semibold text-sm">Attendance</th><th className="text-left py-3 px-4 font-semibold text-sm">Avg. Grade</th>
-            <th className="text-left py-3 px-4 font-semibold text-sm">Task Completion</th></tr></thead>
-            <tbody>{fullStudentsData.map(student => <tr key={student.id} className="border-b hover:bg-gray-50">
-                <td className="py-3 px-4">{student.id}</td><td className="py-3 px-4 font-medium">{student.name}</td>
-                <td className="py-3 px-4">{student.attendance}</td><td className="py-3 px-4 font-bold text-blue-600">{student.avgGrade}</td>
-                <td className="py-3 px-4 font-bold text-green-600">{student.taskCompletion}</td></tr>)}
-            </tbody></table></div>
-    </Card>
-);
+const StudentsView = ({ token }) => {
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+        getTeacherStudents(token)
+            .then((data) => { if (!cancelled) setStudents(Array.isArray(data) ? data : []); })
+            .catch((err) => { if (!cancelled) setError(err.message || 'Failed to load students.'); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [token]);
+
+    return (
+        <Card>
+            <div className="flex justify-between items-center mb-6"><h2 className="font-bold text-xl">Student Roster</h2><input type="text" placeholder="Search for a student..." className="p-2 border rounded-md w-64"/></div>
+            <div className="overflow-x-auto"><table className="min-w-full bg-white"><thead className="bg-gray-100"><tr>
+                <th className="text-left py-3 px-4 font-semibold text-sm">ID</th><th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Attendance</th><th className="text-left py-3 px-4 font-semibold text-sm">Avg. Grade</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Task Completion</th></tr></thead>
+                <tbody>
+                    {loading ? (
+                        <tr><td colSpan="5" className="py-8 text-center text-gray-500">
+                            <span className="inline-flex items-center">
+                                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></span>
+                                Loading students...
+                            </span>
+                        </td></tr>
+                    ) : error ? (
+                        <tr><td colSpan="5" className="py-8 text-center text-red-600 text-sm">Failed to load students: {error}</td></tr>
+                    ) : students.length === 0 ? (
+                        <tr><td colSpan="5" className="py-8 text-center text-gray-500">No students found.</td></tr>
+                    ) : (
+                        students.map(student => (
+                            <tr key={student.id} className="border-b hover:bg-gray-50">
+                                <td className="py-3 px-4">{student.id}</td>
+                                <td className="py-3 px-4 font-medium">{student.name} <span className="text-gray-500 font-normal text-sm">({student.class_name})</span></td>
+                                <td className="py-3 px-4">{student.attendance_percentage}%</td>
+                                <td className="py-3 px-4 font-bold text-blue-600">—</td>
+                                <td className="py-3 px-4 font-bold text-green-600">—</td>
+                            </tr>
+                        ))
+                    )}
+                </tbody></table></div>
+        </Card>
+    );
+};
+StudentsView.propTypes = { token: PropTypes.string.isRequired };
 
 const CommunicationView = () => (
     <Card>
@@ -565,14 +764,14 @@ export default function TeacherDashboard({ token, user, onLogout }) {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <DashboardView setActiveTab={setActiveTab} />;
+            case 'dashboard': return <DashboardView setActiveTab={setActiveTab} token={token} />;
             case 'attendance': return <AttendanceView token={token} />;
             case 'assignments': return <AssignmentsView />;
             case 'insights': return <InsightsView token={token} />;
             case 'content': return <ContentView />;
-            case 'students': return <StudentsView />;
+            case 'students': return <StudentsView token={token} />;
             case 'communication': return <CommunicationView />;
-            default: return <DashboardView setActiveTab={setActiveTab} />;
+            default: return <DashboardView setActiveTab={setActiveTab} token={token} />;
         }
     };
 

@@ -15,6 +15,13 @@ router.use(authMiddleware);
 router.get('/student/today', timetableController.getStudentToday);
 
 /**
+ * GET /api/timetable/teacher/today
+ * Returns today's timetable entries across all classes the logged-in
+ * teacher owns.
+ */
+router.get('/teacher/today', timetableController.getTeacherToday);
+
+/**
  * GET /api/timetable/class/:classId
  * Returns all timetable entries for a class.
  */

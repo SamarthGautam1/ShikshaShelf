@@ -19,6 +19,24 @@ export async function getTodayTimetable(token) {
 }
 
 /**
+ * Fetch today's timetable for the authenticated teacher.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<{entries: Array<{class_name: string, start_time: string, end_time: string, room: string}>}>} Timetable data.
+ */
+export async function getTeacherTodayTimetable(token) {
+  const res = await fetch(`${BASE_URL}/api/timetable/teacher/today`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || 'Failed to fetch teacher timetable');
+  }
+  return body.data;
+}
+
+/**
  * Fetch AI-generated task suggestions for the student's free periods today.
  * @param {string} token - JWT auth token.
  * @returns {Promise<object>} Response containing suggestions array.

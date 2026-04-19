@@ -17,3 +17,21 @@ export async function getTeacherClasses(token) {
   }
   return body.data;
 }
+
+/**
+ * Fetch the list of students across the authenticated teacher's classes.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<Array<{id: string, name: string, class_name: string, attendance_percentage: number}>>} Array of student objects.
+ */
+export async function getTeacherStudents(token) {
+  const res = await fetch(`${BASE_URL}/api/classes/teacher/students`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || 'Failed to fetch students');
+  }
+  return body.data;
+}

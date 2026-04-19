@@ -3,4 +3,4 @@ export { generateQRToken, scanQRToken, getClassAttendance } from './attendance.j
 export { getTeacherClasses } from './classes.js';
 export { getTodayTimetable, getTodaySuggestions } from './timetable.js';
 export { getTeacherInsights, getClassInsights } from './insights.js';
-export { getAdminStats, getAdminUsers, getAttendanceReport } from './admin.js';
+export { getAdminStats, getAdminUsers, getAttendanceReport, getAttendanceCSV } from './admin.js';

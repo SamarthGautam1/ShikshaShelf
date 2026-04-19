@@ -122,9 +122,37 @@ async function getStudentToday(req, res, next) {
   }
 }
 
+/**
+ * GET /api/timetable/teacher/today
+ * Returns today's timetable entries across all classes the logged-in teacher
+ * owns. Uses the same day_of_week mapping as getStudentToday (JS getDay()
+ * minus 1, where 0=Monday … 4=Friday).
+ */
+async function getTeacherToday(req, res, next) {
+  try {
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({ success: false, error: 'Only teachers can view their daily timetable' });
+    }
+
+    const jsDay = new Date().getDay();
+    const dayOfWeek = jsDay - 1; // 0=Mon, 1=Tue, ..., 4=Fri
+
+    // Weekends — no classes
+    if (dayOfWeek < 0 || dayOfWeek > 4) {
+      return res.json({ success: true, data: { entries: [] } });
+    }
+
+    const result = await TimetableModel.getTeacherEntriesForDay(req.user.id, dayOfWeek);
+    res.json({ success: true, data: { entries: result.rows } });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getClassTimetable,
   createEntry,
   deleteEntry,
   getStudentToday,
+  getTeacherToday,
 };

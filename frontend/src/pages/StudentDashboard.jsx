@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import QRScannerModal from './QRScannerModal.jsx';
-import { scanQRToken } from '../api/attendance.js';
+import { scanQRToken, getMyAttendanceSummary } from '../api/attendance.js';
 import { getTodayTimetable, getTodaySuggestions } from '../api/timetable.js';
 import { BroadcastChannel } from 'broadcast-channel';
 import logo from '../assets/logo dashboard.png'; 
@@ -103,8 +103,54 @@ const DashboardView = ({ setScannerOpen, scheduleData, scheduleLoading, suggesti
     );
 };
 DashboardView.propTypes = { setScannerOpen: PropTypes.func.isRequired, scheduleData: PropTypes.array.isRequired, scheduleLoading: PropTypes.bool.isRequired, suggestions: PropTypes.array.isRequired };
-const AttendanceView = () => {
-    const { attended, total } = studentUser.attendance;
+const AttendanceView = ({ token }) => {
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        async function fetchSummary() {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getMyAttendanceSummary(token);
+                if (!cancelled) setSummary(data);
+            } catch (err) {
+                if (!cancelled) setError(err.message);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+        fetchSummary();
+        return () => { cancelled = true; };
+    }, [token]);
+
+    if (loading) {
+        return (
+            <Card>
+                <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-500 font-medium">Loading attendance...</span>
+                </div>
+            </Card>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card>
+                <div className="text-center py-16">
+                    <p className="text-red-600 font-semibold mb-2">Failed to load attendance</p>
+                    <p className="text-gray-500 text-sm">{error}</p>
+                </div>
+            </Card>
+        );
+    }
+
+    const total = summary.total_classes ?? 0;
+    const attended = summary.attended ?? 0;
+    const percentage = summary.percentage ?? 0;
     const absent = total - attended;
     const pieData = [{ name: 'Attended', value: attended }, { name: 'Absent', value: absent }];
     const COLORS = ['#3b82f6', '#ef4444'];
@@ -113,7 +159,7 @@ const AttendanceView = () => {
             <Card className="lg:col-span-1">
                 <h2 className="font-bold text-xl mb-4">Attendance Overview</h2>
                 <div className="space-y-3 text-lg">
-                    <div className="flex justify-between"><span className="text-gray-600">Overall Percentage:</span><span className="font-bold text-blue-600">{studentUser.attendance.percentage}%</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Overall Percentage:</span><span className="font-bold text-blue-600">{percentage}%</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Classes Attended:</span><span className="font-bold text-green-600">{attended}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Classes Missed:</span><span className="font-bold text-red-600">{absent}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Total Classes:</span><span className="font-bold text-gray-800">{total}</span></div>
@@ -135,6 +181,7 @@ const AttendanceView = () => {
         </div>
     );
 };
+AttendanceView.propTypes = { token: PropTypes.string.isRequired };
 const PerformanceView = () => (
     <Card>
         <h2 className="font-bold text-xl mb-4">Performance Overview</h2>
@@ -327,7 +374,7 @@ export default function StudentDashboard({ token, user, onLogout }) {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return <DashboardView setScannerOpen={setScannerOpen} scheduleData={scheduleData} scheduleLoading={scheduleLoading} suggestions={suggestions} />;
-            case 'attendance': return <AttendanceView />;
+            case 'attendance': return <AttendanceView token={token} />;
             case 'performance': return <PerformanceView />;
             case 'resources': return <ResourcesView />;
             case 'assignments': return <AssignmentsView />;

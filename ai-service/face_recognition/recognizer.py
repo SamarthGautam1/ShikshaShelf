@@ -10,9 +10,11 @@ Threshold convention (dlib):
     confidence                 = 1 - distance
 """
 
+import json
 import logging
 import os
 import threading
+import traceback
 from pathlib import Path
 
 import cv2
@@ -25,6 +27,33 @@ except ImportError:  # pragma: no cover - requests is in requirements.txt
     requests = None  # type: ignore
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Import-time env var diagnostics
+# ---------------------------------------------------------------------------
+# Printed once, at module import, so operators can immediately see which env
+# vars actually reached this module. If app.py (or another entrypoint) forgot
+# to call load_dotenv() before importing us, these will be None/empty.
+_NODE_BACKEND_URL_AT_IMPORT = os.environ.get("NODE_BACKEND_URL")
+_FACE_MODEL_PATH_AT_IMPORT = os.environ.get("FACE_MODEL_PATH")
+_FACE_RECOGNITION_THRESHOLD_AT_IMPORT = os.environ.get("FACE_RECOGNITION_THRESHOLD")
+
+print(
+    "[FACE BOOTSTRAP] Module import env snapshot: "
+    f"NODE_BACKEND_URL={_NODE_BACKEND_URL_AT_IMPORT!r} "
+    f"(empty/None => DB load will be skipped); "
+    f"FACE_MODEL_PATH={_FACE_MODEL_PATH_AT_IMPORT!r}; "
+    f"FACE_RECOGNITION_THRESHOLD={_FACE_RECOGNITION_THRESHOLD_AT_IMPORT!r}",
+    flush=True,
+)
+if not _NODE_BACKEND_URL_AT_IMPORT:
+    print(
+        "[FACE BOOTSTRAP] WARNING: NODE_BACKEND_URL is unset at import time. "
+        "If you expect DB-backed encodings, ensure load_dotenv() runs BEFORE "
+        "importing face_recognition.recognizer.",
+        flush=True,
+    )
 
 
 # Default location of the face recognition assets. The repository layout is:
@@ -108,18 +137,50 @@ class FaceRecognizer:
 
     def _bootstrap_encodings(self) -> None:
         """Try loading encodings from the Node backend, fall back to disk."""
+        backend_url_now = os.environ.get("NODE_BACKEND_URL")
+        print(
+            "[FACE BOOTSTRAP] _bootstrap_encodings starting. Sources to try: "
+            f"1) Node backend (NODE_BACKEND_URL={backend_url_now!r}), "
+            f"2) disk photos dir={self._photos_dir}",
+            flush=True,
+        )
+
         try:
             loaded = self.load_encodings_from_db()
+            print(
+                f"[FACE BOOTSTRAP] load_encodings_from_db returned {loaded} encoding(s)",
+                flush=True,
+            )
         except Exception as exc:  # noqa: BLE001 — network/parse errors all fall back
+            print(
+                f"[FACE BOOTSTRAP] load_encodings_from_db raised {type(exc).__name__}: {exc}",
+                flush=True,
+            )
+            traceback.print_exc()
             logger.warning("DB encoding load failed (%s); falling back to disk", exc)
             loaded = 0
 
         if loaded > 0:
+            print(
+                f"[FACE BOOTSTRAP] Using DB-backed encodings ({loaded}). "
+                f"Names: {self._known_names}",
+                flush=True,
+            )
             logger.info("Loaded %d face encodings from Node backend", loaded)
             return
 
+        print(
+            f"[FACE BOOTSTRAP] Falling back to disk. Scanning: {self._photos_dir}",
+            flush=True,
+        )
         logger.info("Loading face encodings from disk photos at %s", self._photos_dir)
         self._load_known_faces(self._photos_dir)
+        print(
+            "[FACE BOOTSTRAP] Final summary: "
+            f"total_encodings={len(self._known_encodings)}; "
+            f"names={self._known_names}",
+            flush=True,
+        )
 
     def load_encodings_from_db(self) -> int:
         """Fetch face encodings from the Node backend and replace in-memory state.
@@ -129,12 +190,14 @@ class FaceRecognizer:
 
             {
               "success": true,
-              "data": {
-                "encodings": [
-                  {"user_id": "...", "name": "...", "encoding": [f1, ..., f128]},
-                  ...
-                ]
-              }
+              "data": [
+                {
+                  "student_id": "...",
+                  "name": "...",
+                  "encoding_json": "[f1, ..., f128]"   # JSON-encoded string
+                },
+                ...
+              ]
             }
 
         Returns:
@@ -151,21 +214,29 @@ class FaceRecognizer:
 
         backend_url = os.environ.get("NODE_BACKEND_URL")
         if not backend_url:
+            print(
+                "[FACE BOOTSTRAP] NODE_BACKEND_URL is unset/empty; skipping DB load",
+                flush=True,
+            )
             logger.info("NODE_BACKEND_URL not set; skipping DB encoding load")
             return 0
 
         url = backend_url.rstrip("/") + "/api/faces/encodings"
+        print(f"[FACE BOOTSTRAP] GET {url} (timeout=5s)", flush=True)
         response = requests.get(url, timeout=5)
+        print(
+            f"[FACE BOOTSTRAP] Backend responded HTTP {response.status_code}",
+            flush=True,
+        )
         response.raise_for_status()
-        payload = response.json()
+        body = response.json()
 
-        if not isinstance(payload, dict) or not payload.get("success"):
-            raise ValueError(f"Backend responded with error payload: {payload!r}")
+        if not isinstance(body, dict) or not body.get("success"):
+            raise ValueError(f"Backend responded with error payload: {body!r}")
 
-        data = payload.get("data") or {}
-        encodings_list = data.get("encodings") or []
+        encodings_list = body.get("data") or []
         if not isinstance(encodings_list, list):
-            raise ValueError("'data.encodings' is not a list")
+            raise ValueError("'data' is not a list")
 
         new_encodings: list[np.ndarray] = []
         new_names: list[str] = []
@@ -174,17 +245,32 @@ class FaceRecognizer:
         for entry in encodings_list:
             if not isinstance(entry, dict):
                 continue
-            raw_encoding = entry.get("encoding")
+            raw_encoding_json = entry.get("encoding_json")
+            if not isinstance(raw_encoding_json, str):
+                continue
+            try:
+                raw_encoding = json.loads(raw_encoding_json)
+            except (TypeError, ValueError):
+                continue
             if not isinstance(raw_encoding, list) or len(raw_encoding) != 128:
                 continue
             try:
                 arr = np.asarray(raw_encoding, dtype=np.float64)
             except (TypeError, ValueError):
                 continue
-            name = entry.get("name") or str(entry.get("user_id") or "Unknown")
+            if arr.shape != (128,):
+                continue
+            student_id = entry.get("student_id")
+            name = entry.get("name") or str(student_id or "Unknown")
             new_encodings.append(arr)
             new_names.append(str(name))
-            new_user_ids.append(entry.get("user_id"))
+            new_user_ids.append(student_id)
+
+        print(
+            f"[FACE BOOTSTRAP] Backend returned {len(encodings_list)} raw entry/entries; "
+            f"{len(new_encodings)} passed validation (128-d float vectors)",
+            flush=True,
+        )
 
         # Atomically replace — only swap if we actually got something parseable.
         if not new_encodings:
@@ -233,16 +319,49 @@ class FaceRecognizer:
         incoming face will simply be reported as unknown.
         """
         if not photos_dir.exists():
+            print(
+                f"[FACE BOOTSTRAP] Disk photos dir did not exist; created empty: {photos_dir}",
+                flush=True,
+            )
             photos_dir.mkdir(parents=True, exist_ok=True)
             return
 
-        for photo_name in sorted(os.listdir(photos_dir)):
-            if not photo_name.lower().endswith(_SUPPORTED_PHOTO_EXTENSIONS):
-                continue
+        all_entries = sorted(os.listdir(photos_dir))
+        supported_entries = [
+            name for name in all_entries
+            if name.lower().endswith(_SUPPORTED_PHOTO_EXTENSIONS)
+        ]
+        print(
+            f"[FACE BOOTSTRAP] Disk scan of {photos_dir}: "
+            f"{len(all_entries)} total entries, "
+            f"{len(supported_entries)} with supported extensions {_SUPPORTED_PHOTO_EXTENSIONS}. "
+            f"All entries: {all_entries}",
+            flush=True,
+        )
+        if not supported_entries:
+            print(
+                "[FACE BOOTSTRAP] No supported photo files found on disk. "
+                "(Common cause: photos renamed to .bak or moved elsewhere.)",
+                flush=True,
+            )
 
+        for photo_name in supported_entries:
             photo_path = photos_dir / photo_name
-            image_bgr = cv2.imread(str(photo_path))
+            try:
+                image_bgr = cv2.imread(str(photo_path))
+            except Exception as exc:  # noqa: BLE001
+                print(
+                    f"[FACE BOOTSTRAP] cv2.imread raised for {photo_path}: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+                continue
             if image_bgr is None:
+                print(
+                    f"[FACE BOOTSTRAP] cv2.imread returned None for {photo_path} "
+                    "(unreadable/corrupt image); skipping",
+                    flush=True,
+                )
                 continue
 
             # Keep very large images manageable for dlib on CPU.
@@ -256,15 +375,28 @@ class FaceRecognizer:
             with self._dlib_lock:
                 detected_faces = self._detector(image_rgb)
                 if not detected_faces:
+                    print(
+                        f"[FACE BOOTSTRAP] No face detected in {photo_path}; skipping",
+                        flush=True,
+                    )
                     continue
                 encoding = self._encode_face_locked(image_rgb, detected_faces[0])
 
             if encoding is None:
+                print(
+                    f"[FACE BOOTSTRAP] Encoding computation failed for {photo_path}; skipping",
+                    flush=True,
+                )
                 continue
 
             display_name = Path(photo_name).stem.replace("_", " ").title()
             self._known_encodings.append(encoding)
             self._known_names.append(display_name)
+            self._known_user_ids.append(None)
+            print(
+                f"[FACE BOOTSTRAP] Loaded encoding for '{display_name}' from {photo_name}",
+                flush=True,
+            )
 
     def _encode_face_locked(self, image_rgb: np.ndarray, face_rect: "dlib.rectangle") -> np.ndarray | None:
         """Compute a 128-d face descriptor. Caller MUST already hold ``_dlib_lock``."""
@@ -365,10 +497,25 @@ class FaceRecognizer:
         with self._dlib_lock:
             detected_faces = self._detector(image_rgb, 1)
 
-            for face_rect in detected_faces:
+            num_faces = len(detected_faces)
+            if num_faces > 0:
+                print(
+                    f"[FACE DEBUG] Frame: {num_faces} face(s) detected; "
+                    f"threshold={self.threshold}; "
+                    f"known_encodings={len(self._known_encodings)}",
+                    flush=True,
+                )
+
+            for face_index, face_rect in enumerate(detected_faces):
                 encoding = self._encode_face_locked(image_rgb, face_rect)
 
                 if encoding is None or not self._known_encodings:
+                    print(
+                        f"[FACE DEBUG] Face #{face_index}: "
+                        f"{'encoding_failed' if encoding is None else 'no_known_encodings'}"
+                        f" -> unknown",
+                        flush=True,
+                    )
                     unknown_count += 1
                     continue
 
@@ -377,10 +524,21 @@ class FaceRecognizer:
                 )
                 best_index = int(np.argmin(distances))
                 best_distance = float(distances[best_index])
+                best_name = self._known_names[best_index]
+                passed = best_distance < self.threshold
 
-                if best_distance < self.threshold:
+                print(
+                    f"[FACE DEBUG] Face #{face_index}: "
+                    f"closest='{best_name}' "
+                    f"distance={best_distance:.4f} "
+                    f"threshold={self.threshold} "
+                    f"passed={passed}",
+                    flush=True,
+                )
+
+                if passed:
                     matches.append({
-                        "name": self._known_names[best_index],
+                        "name": best_name,
                         "distance": best_distance,
                         "confidence": 1.0 - best_distance,
                     })

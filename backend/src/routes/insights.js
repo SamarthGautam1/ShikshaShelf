@@ -39,7 +39,7 @@ router.get('/teacher', async (req, res, next) => {
          c.subject,
          COUNT(DISTINCT e.student_id) AS enrolled_count,
          COUNT(DISTINCT ar.date) AS total_classes_held,
-         COUNT(ar.id) AS total_attendance_marks
+         COUNT(ar.id) FILTER (WHERE ar.method != 'absent') AS total_attendance_marks
        FROM classes c
        LEFT JOIN enrollments e ON e.class_id = c.id
        LEFT JOIN attendance_records ar ON ar.class_id = c.id
@@ -70,11 +70,11 @@ router.get('/teacher', async (req, res, next) => {
          u.name AS student_name,
          c.id AS class_id,
          c.name AS class_name,
-         COUNT(ar.id) AS attendance_count,
+         COUNT(ar.id) FILTER (WHERE ar.method != 'absent') AS attendance_count,
          class_dates.total_classes_held,
          CASE
            WHEN class_dates.total_classes_held = 0 THEN 0
-           ELSE COUNT(ar.id)::float / class_dates.total_classes_held
+           ELSE COUNT(ar.id) FILTER (WHERE ar.method != 'absent')::float / class_dates.total_classes_held
          END AS attendance_rate
        FROM enrollments e
        JOIN users u ON e.student_id = u.id
@@ -90,7 +90,7 @@ router.get('/teacher', async (req, res, next) => {
        GROUP BY u.id, u.name, c.id, c.name, class_dates.total_classes_held
        HAVING CASE
          WHEN class_dates.total_classes_held = 0 THEN 0
-         ELSE COUNT(ar.id)::float / class_dates.total_classes_held
+         ELSE COUNT(ar.id) FILTER (WHERE ar.method != 'absent')::float / class_dates.total_classes_held
        END < 0.75`,
       [teacherId],
     );
@@ -167,7 +167,7 @@ router.get(
         `SELECT
            u.id AS student_id,
            u.name AS student_name,
-           COUNT(ar.id) AS attendance_count
+           COUNT(ar.id) FILTER (WHERE ar.method != 'absent') AS attendance_count
          FROM enrollments e
          JOIN users u ON e.student_id = u.id
          LEFT JOIN attendance_records ar ON ar.student_id = u.id AND ar.class_id = $1

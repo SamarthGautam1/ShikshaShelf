@@ -44,8 +44,11 @@ async function markAttendance(studentId, classId, method) {
  * For each class the student is enrolled in:
  *   - total: count of distinct dates that class held attendance (matches
  *     the convention used by the teacher-side insights endpoint —
- *     COUNT(DISTINCT date) FROM attendance_records WHERE class_id = ...)
+ *     COUNT(DISTINCT date) FROM attendance_records WHERE class_id = ...).
+ *     Includes 'absent' rows so absences land in the denominator.
  *   - attended: count of attendance_records the student has for that class
+ *     where method != 'absent'. 'absent' rows mark absences and must not
+ *     count as attendance.
  *
  * @param {string} studentId
  * @returns {Promise<Array<{class_id: string, class_name: string, attended: number, total: number}>>}
@@ -56,7 +59,7 @@ async function getStudentAttendanceSummary(studentId) {
        c.id   AS class_id,
        c.name AS class_name,
        COALESCE(class_dates.total_classes_held, 0) AS total,
-       COUNT(ar.id) AS attended
+       COUNT(*) FILTER (WHERE ar.id IS NOT NULL AND ar.method != 'absent') AS attended
      FROM enrollments e
      JOIN classes c ON c.id = e.class_id
      LEFT JOIN (

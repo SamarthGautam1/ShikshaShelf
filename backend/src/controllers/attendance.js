@@ -120,6 +120,8 @@ async function recognizeFaces(req, res, next) {
         io.to(room).emit('attendance:marked', {
           studentName: student.name,
           markedAt: inserted.marked_at,
+          student_id: student.id,
+          class_id,
         });
       }
     }

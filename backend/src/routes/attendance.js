@@ -128,6 +128,8 @@ router.post(
       io.to(`attendance:${qrToken.class_id}`).emit('attendance:marked', {
         studentName,
         markedAt: attendance.rows[0].marked_at,
+        student_id: req.user.id,
+        class_id: qrToken.class_id,
       });
 
       res.status(201).json({ success: true, data: attendance.rows[0] });

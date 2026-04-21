@@ -71,6 +71,62 @@ export async function getMyAttendanceSummary(token) {
 }
 
 /**
+ * Close today's attendance session for a class. The backend inserts an
+ * 'absent' record for every enrolled student who wasn't already marked
+ * present and emits `attendance:session-closed` to the class's socket room.
+ * @param {string} classId - The class ID whose session should be closed.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<{absent_students: Array<{student_id: string, name: string}>, count: number}>}
+ */
+export async function closeAttendanceSession(classId, token) {
+  const res = await fetch(`${BASE_URL}/api/attendance/session/close`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ class_id: classId }),
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || 'Failed to close attendance session');
+  }
+  return body.data;
+}
+
+/**
+ * Manually override a single student's attendance for a class on a date.
+ * Teachers can only override for classes they own; admins can override any.
+ * @param {string} studentId - The student whose attendance is being set.
+ * @param {string} classId - The class ID the record belongs to.
+ * @param {string} date - Date in YYYY-MM-DD format.
+ * @param {'present'|'absent'} status - The attendance status to write.
+ * @param {string} token - JWT auth token.
+ * @returns {Promise<object>} The upserted attendance record.
+ */
+export async function manualMarkAttendance(studentId, classId, date, status, token) {
+  const res = await fetch(`${BASE_URL}/api/attendance/manual`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      student_id: studentId,
+      class_id: classId,
+      date,
+      status,
+      method: 'manual',
+    }),
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || 'Failed to update attendance');
+  }
+  return body.data;
+}
+
+/**
  * Submit a captured camera frame to the backend for face recognition.
  * The backend forwards the image to the AI service, resolves any matched
  * students, inserts attendance rows, and broadcasts `attendance:marked`

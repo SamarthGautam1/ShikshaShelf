@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from '../assets/logo dashboard.png';
-import { generateQRToken, recognizeFace } from '../api/attendance.js';
+import { generateQRToken, recognizeFace, closeAttendanceSession, manualMarkAttendance } from '../api/attendance.js';
 import { getTeacherClasses, getTeacherStudents } from '../api/classes.js';
 import { getTeacherInsights } from '../api/insights.js';
 import { getTeacherTodayTimetable } from '../api/timetable.js';
@@ -172,6 +172,13 @@ const AttendanceView = ({ token }) => {
     const canvasRef = useRef(null);
     const streamRef = useRef(null);
     const captureIntervalRef = useRef(null);
+    // Guards against double-closing the session (e.g., timer expiry racing
+    // against the teacher clicking "Stop Attendance" at the same moment).
+    const closingRef = useRef(false);
+    // Latest attendees/absentees snapshot, readable from the timer callback
+    // without re-creating the interval on every socket update.
+    const attendeesRef = useRef([]);
+    const absenteesRef = useRef([]);
 
     useEffect(() => {
         let cancelled = false;
@@ -207,36 +214,116 @@ const AttendanceView = ({ token }) => {
 
     // Socket hook — only connects when sessionActive and classId are set
     const activeClassId = sessionActive ? selectedClassId : null;
-    const { attendees, isConnected } = useAttendanceSocket(activeClassId, token);
+    const {
+        attendees,
+        absentees,
+        isConnected,
+        setAttendees,
+        setAbsentees,
+    } = useAttendanceSocket(activeClassId, token);
+
+    // Keep refs in sync so the auto-close timer callback can snapshot the
+    // latest roster without re-binding the interval on every change.
+    useEffect(() => { attendeesRef.current = attendees; }, [attendees]);
+    useEffect(() => { absenteesRef.current = absentees; }, [absentees]);
+
+    // Track in-flight manual-override calls so the per-row button can disable
+    // itself without blocking other rows. Keyed by student_id.
+    const [overrideBusyIds, setOverrideBusyIds] = useState(() => new Set());
+    const [overrideError, setOverrideError] = useState('');
+    const [closeError, setCloseError] = useState('');
+
+    // After a session is closed we still want the roster (with absentees) to
+    // remain visible and editable via the manual-override endpoint. We hold
+    // the final snapshot here because the socket hook clears its internal
+    // state on unmount.
+    const [finalPresent, setFinalPresent] = useState([]);
+    const [finalAbsent, setFinalAbsent] = useState([]);
+    const [showFinalRoster, setShowFinalRoster] = useState(false);
+
+    // Forward-reference to stopFaceCapture so closeAndFinalize (defined
+    // before stopFaceCapture in source order) can call it without a
+    // circular useCallback dependency. Populated by an effect below.
+    const stopFaceCaptureRef = useRef(() => {});
 
     /**
-     * Start a QR attendance session: generate a token via the API,
-     * then display the QR code and activate the socket connection.
+     * Close the attendance session on the backend and transition the UI
+     * into the post-close state showing the final roster. Shared by both
+     * the manual "Stop Attendance" button and the automatic timer-expiry
+     * path. Guarded by `closingRef` so it only runs once per session even
+     * if both paths fire near-simultaneously.
      */
+    const closeAndFinalize = useCallback(async () => {
+        if (closingRef.current) return;
+        closingRef.current = true;
+
+        setCloseError('');
+        // Close the attendance session on the backend FIRST so that any
+        // enrolled students who haven't been marked present get an 'absent'
+        // record and the socket emits `attendance:session-closed` before we
+        // tear down local state.
+        let absentFromServer = [];
+        if (selectedClassId) {
+            try {
+                const data = await closeAttendanceSession(selectedClassId, token);
+                if (Array.isArray(data?.absent_students)) {
+                    absentFromServer = data.absent_students;
+                }
+            } catch (err) {
+                setCloseError(err.message || 'Failed to close session on the server.');
+            }
+        }
+
+        // Snapshot the roster from refs (latest socket values, not stale closure).
+        const liveAttendees = attendeesRef.current;
+        const liveAbsentees = absenteesRef.current;
+        setFinalPresent(liveAttendees.map((a) => ({
+            studentName: a.studentName,
+            markedAt: a.markedAt,
+            student_id: a.student_id,
+            class_id: a.class_id,
+        })));
+        const mergedAbsent = absentFromServer.length > 0 ? absentFromServer : liveAbsentees;
+        setFinalAbsent(mergedAbsent);
+        setShowFinalRoster(true);
+
+        clearTimer();
+        stopFaceCaptureRef.current();
+        setMode(null);
+        setSessionActive(false);
+        setQrToken('');
+        setQrError('');
+        setFaceError('');
+        setUnknownCount(0);
+        setCountdown(QR_SESSION_DURATION);
+        setSessionExpired(false);
+    }, [selectedClassId, token, clearTimer]);
+
     /**
      * Start a countdown timer that expires after QR_SESSION_DURATION seconds.
-     * When the timer reaches 0 the QR session ends automatically.
+     * When the timer reaches 0 the QR session is auto-closed (backend session
+     * close + final roster shown) exactly the same as clicking Stop Attendance.
      */
     const startCountdown = useCallback(() => {
         clearTimer();
         setCountdown(QR_SESSION_DURATION);
         setSessionExpired(false);
+        closingRef.current = false;
 
         timerRef.current = setInterval(() => {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(timerRef.current);
                     timerRef.current = null;
-                    setMode(null);
-                    setSessionActive(false);
-                    setQrToken('');
                     setSessionExpired(true);
+                    // Fire the same close path the Stop button uses.
+                    closeAndFinalize();
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
-    }, [clearTimer]);
+    }, [clearTimer, closeAndFinalize]);
 
     /**
      * Tear down the camera capture loop and release the MediaStream.
@@ -255,6 +342,12 @@ const AttendanceView = ({ token }) => {
             videoRef.current.srcObject = null;
         }
     }, []);
+
+    // Expose the latest stopFaceCapture via the ref so closeAndFinalize
+    // (declared earlier) can invoke it without a circular useCallback dep.
+    useEffect(() => {
+        stopFaceCaptureRef.current = stopFaceCapture;
+    }, [stopFaceCapture]);
 
     // Ensure the camera is always released when this view unmounts mid-scan.
     useEffect(() => {
@@ -325,6 +418,7 @@ const AttendanceView = ({ token }) => {
         if (!selectedClassId) return;
         setFaceError('');
         setUnknownCount(0);
+        closingRef.current = false;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             streamRef.current = stream;
@@ -347,18 +441,85 @@ const AttendanceView = ({ token }) => {
         }
     };
 
+    // Manual "Stop Attendance" click — identical behavior to timer expiry.
+    // Both paths funnel through `closeAndFinalize`, which is idempotent.
     const stopSession = () => {
-        clearTimer();
-        stopFaceCapture();
-        setMode(null);
-        setSessionActive(false);
-        setQrToken('');
-        setQrError('');
-        setFaceError('');
-        setUnknownCount(0);
-        setCountdown(QR_SESSION_DURATION);
-        setSessionExpired(false);
+        closeAndFinalize();
     };
+
+    /**
+     * Optimistically flip a roster row between present and absent, calling
+     * the manual-override endpoint. On failure we revert and show an inline
+     * error. Works for both the live (session-active) roster and the final
+     * post-close roster — the caller passes the right state setters.
+     * @param {object} args
+     * @param {string} args.studentId
+     * @param {string} args.name
+     * @param {boolean} args.currentlyPresent
+     * @param {Function} args.setPresentList - setter for the present array
+     * @param {Function} args.setAbsentList  - setter for the absent array
+     * @param {Array} args.prevPresentList   - snapshot for rollback
+     * @param {Array} args.prevAbsentList    - snapshot for rollback
+     * @param {'live'|'final'} args.rosterMode
+     */
+    const toggleStudentAttendance = useCallback(async ({
+        studentId,
+        name,
+        currentlyPresent,
+        setPresentList,
+        setAbsentList,
+        prevPresentList,
+        prevAbsentList,
+    }) => {
+        if (!selectedClassId || !studentId) return;
+
+        const today = new Date().toISOString().slice(0, 10);
+        const nextStatus = currentlyPresent ? 'absent' : 'present';
+
+        // Only confirm when marking a student absent — marking present is
+        // not destructive and shouldn't interrupt the teacher's workflow.
+        if (nextStatus === 'absent') {
+            const ok = window.confirm(`Mark ${name} as absent?`);
+            if (!ok) return;
+        }
+
+        setOverrideError('');
+        setOverrideBusyIds((prev) => {
+            const next = new Set(prev);
+            next.add(studentId);
+            return next;
+        });
+
+        // Optimistic update.
+        if (nextStatus === 'absent') {
+            setPresentList((list) => list.filter((a) => a.studentName !== name));
+            setAbsentList((list) => {
+                if (list.some((a) => a.student_id === studentId)) return list;
+                return [...list, { student_id: studentId, name }];
+            });
+        } else {
+            setAbsentList((list) => list.filter((a) => a.student_id !== studentId));
+            setPresentList((list) => {
+                if (list.some((a) => a.studentName === name)) return list;
+                return [...list, { studentName: name, student_id: studentId, markedAt: new Date().toISOString() }];
+            });
+        }
+
+        try {
+            await manualMarkAttendance(studentId, selectedClassId, today, nextStatus, token);
+        } catch (err) {
+            // Revert.
+            setPresentList(prevPresentList);
+            setAbsentList(prevAbsentList);
+            setOverrideError(err.message || 'Failed to update attendance.');
+        } finally {
+            setOverrideBusyIds((prev) => {
+                const next = new Set(prev);
+                next.delete(studentId);
+                return next;
+            });
+        }
+    }, [selectedClassId, token]);
 
     /**
      * Format an ISO timestamp or date string into a readable time.
@@ -424,7 +585,7 @@ const AttendanceView = ({ token }) => {
                         </button>
                     </div>
                 ) : (
-                    <button onClick={stopSession} className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 mt-4 sm:mt-0">
+                    <button onClick={() => { stopSession(); }} className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 mt-4 sm:mt-0">
                         Stop Attendance
                     </button>
                 )}
@@ -505,27 +666,164 @@ const AttendanceView = ({ token }) => {
                 </div>
             )}
 
+            {closeError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {closeError}
+                </div>
+            )}
+
+            {overrideError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {overrideError}
+                </div>
+            )}
+
             {sessionActive && (
                 <div className="mt-6">
                     <h3 className="font-bold text-lg mb-4">
                         Live Roster - {selectedLabel}
                         <span className="ml-3 text-sm font-normal text-gray-500">
-                            ({attendees.length} student{attendees.length !== 1 ? 's' : ''} marked)
+                            ({attendees.length} present, {absentees.length} absent)
                         </span>
                     </h3>
-                    {attendees.length === 0 ? (
+                    {attendees.length === 0 && absentees.length === 0 ? (
                         <p className="text-gray-400 text-sm">Waiting for students to scan...</p>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {attendees.map((entry, index) => (
-                                <div
-                                    key={`${entry.studentName}-${index}`}
-                                    className="p-3 rounded-lg text-center border-2 bg-green-100 border-green-300"
-                                >
-                                    <p className="font-semibold text-sm">{entry.studentName}</p>
-                                    <p className="text-xs font-bold text-green-800">{formatTime(entry.markedAt)}</p>
-                                </div>
-                            ))}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {attendees.map((entry, index) => {
+                                const studentId = entry.student_id || null;
+                                const busy = studentId && overrideBusyIds.has(studentId);
+                                return (
+                                    <div
+                                        key={`${entry.studentName}-${index}`}
+                                        className="p-3 rounded-lg border-2 bg-green-100 border-green-300 flex flex-col items-center"
+                                    >
+                                        <span className="inline-block px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-bold mb-1">PRESENT</span>
+                                        <p className="font-semibold text-sm">{entry.studentName}</p>
+                                        <p className="text-xs font-bold text-green-800">{formatTime(entry.markedAt)}</p>
+                                        {studentId && (
+                                            <button
+                                                type="button"
+                                                disabled={busy}
+                                                onClick={() => toggleStudentAttendance({
+                                                    studentId,
+                                                    name: entry.studentName,
+                                                    currentlyPresent: true,
+                                                    setPresentList: setAttendees,
+                                                    setAbsentList: setAbsentees,
+                                                    prevPresentList: attendees,
+                                                    prevAbsentList: absentees,
+                                                })}
+                                                className="mt-2 w-full text-xs font-semibold py-1 px-2 rounded bg-white border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {busy ? 'Updating...' : 'Mark Absent'}
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            {absentees.map((entry) => {
+                                const busy = overrideBusyIds.has(entry.student_id);
+                                return (
+                                    <div
+                                        key={entry.student_id}
+                                        className="p-3 rounded-lg border-2 bg-red-100 border-red-300 flex flex-col items-center"
+                                    >
+                                        <span className="inline-block px-2 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold mb-1">ABSENT</span>
+                                        <p className="font-semibold text-sm">{entry.name}</p>
+                                        <button
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() => toggleStudentAttendance({
+                                                studentId: entry.student_id,
+                                                name: entry.name,
+                                                currentlyPresent: false,
+                                                setPresentList: setAttendees,
+                                                setAbsentList: setAbsentees,
+                                                prevPresentList: attendees,
+                                                prevAbsentList: absentees,
+                                            })}
+                                            className="mt-2 w-full text-xs font-semibold py-1 px-2 rounded bg-white border border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {busy ? 'Updating...' : 'Mark Present'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {showFinalRoster && !sessionActive && (
+                <div className="mt-6">
+                    <h3 className="font-bold text-lg mb-4">
+                        Final Roster - {selectedLabel || 'Closed Session'}
+                        <span className="ml-3 text-sm font-normal text-gray-500">
+                            ({finalPresent.length} present, {finalAbsent.length} absent)
+                        </span>
+                    </h3>
+                    {finalPresent.length === 0 && finalAbsent.length === 0 ? (
+                        <p className="text-gray-400 text-sm">No roster data to display.</p>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {finalPresent.map((entry, index) => {
+                                const studentId = entry.student_id || null;
+                                const busy = studentId ? overrideBusyIds.has(studentId) : false;
+                                return (
+                                    <div
+                                        key={`final-present-${entry.studentName}-${index}`}
+                                        className="p-3 rounded-lg border-2 bg-green-100 border-green-300 flex flex-col items-center"
+                                    >
+                                        <span className="inline-block px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-bold mb-1">PRESENT</span>
+                                        <p className="font-semibold text-sm">{entry.studentName}</p>
+                                        <button
+                                            type="button"
+                                            disabled={busy || !studentId}
+                                            onClick={() => toggleStudentAttendance({
+                                                studentId,
+                                                name: entry.studentName,
+                                                currentlyPresent: true,
+                                                setPresentList: setFinalPresent,
+                                                setAbsentList: setFinalAbsent,
+                                                prevPresentList: finalPresent,
+                                                prevAbsentList: finalAbsent,
+                                            })}
+                                            className="mt-2 w-full text-xs font-semibold py-1 px-2 rounded bg-white border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {busy ? 'Updating...' : 'Mark Absent'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                            {finalAbsent.map((entry) => {
+                                const busy = overrideBusyIds.has(entry.student_id);
+                                return (
+                                    <div
+                                        key={`final-absent-${entry.student_id}`}
+                                        className="p-3 rounded-lg border-2 bg-red-100 border-red-300 flex flex-col items-center"
+                                    >
+                                        <span className="inline-block px-2 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold mb-1">ABSENT</span>
+                                        <p className="font-semibold text-sm">{entry.name}</p>
+                                        <button
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() => toggleStudentAttendance({
+                                                studentId: entry.student_id,
+                                                name: entry.name,
+                                                currentlyPresent: false,
+                                                setPresentList: setFinalPresent,
+                                                setAbsentList: setFinalAbsent,
+                                                prevPresentList: finalPresent,
+                                                prevAbsentList: finalAbsent,
+                                            })}
+                                            className="mt-2 w-full text-xs font-semibold py-1 px-2 rounded bg-white border border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {busy ? 'Updating...' : 'Mark Present'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

@@ -80,3 +80,62 @@ def recognize():
             "unknown_count": unknown_count,
         },
     }), 200
+
+
+@face_recognition_bp.route("/encode", methods=["POST"])
+def encode():
+    """Compute a 128-d face encoding from an uploaded image.
+
+    Accepts multipart/form-data with an ``image`` file field (also accepts a
+    JSON body with ``image_base64`` for consistency with ``/recognize``).
+    Enforces exactly one face per image — fewer or more faces yield a 400.
+
+    Returns:
+        ``{"success": True, "data": {"encoding": [128 floats]}}`` on success.
+        ``{"success": False, "error": "<code>"}`` with status 400 when the
+        image contains zero or multiple faces, or status 500 on internal
+        failures.
+    """
+    image_bytes, error, status = _extract_image_bytes()
+    if error is not None:
+        return jsonify({"success": False, "error": error}), status
+
+    recognizer = getattr(current_app, "face_recognizer", None)
+    if recognizer is None:
+        return jsonify({"success": False, "error": "Face recognizer not initialized"}), 500
+
+    try:
+        encoding, error_code = recognizer.encode_image(image_bytes)
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({"success": False, "error": f"Face encoding error: {exc}"}), 500
+
+    if error_code is not None:
+        http_status = 400 if error_code != "encoding_failed" else 500
+        return jsonify({"success": False, "error": error_code}), http_status
+
+    return jsonify({
+        "success": True,
+        "data": {"encoding": encoding},
+    }), 200
+
+
+@face_recognition_bp.route("/reload", methods=["POST"])
+def reload_encodings():
+    """Force a reload of known face encodings (DB first, disk fallback).
+
+    Exposes :py:meth:`FaceRecognizer.reload_encodings` so operators can refresh
+    the in-memory encoding set without restarting Flask after the backend
+    adds/removes a student.
+    """
+    recognizer = getattr(current_app, "face_recognizer", None)
+    if recognizer is None:
+        return jsonify({"success": False, "error": "Face recognizer not initialized"}), 500
+
+    try:
+        count = recognizer.reload_encodings()
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({"success": False, "error": f"Reload failed: {exc}"}), 500
+
+    return jsonify({"success": True, "data": {"loaded": count}}), 200

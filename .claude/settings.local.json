@@ -36,7 +36,8 @@
       "Bash(node --check src/models/attendance.js)",
       "Bash(node --check src/controllers/attendance.js)",
       "Bash(node --check src/routes/attendance.js)",
-      "Bash(node -e \"require\\('./src/routes/attendance'\\); require\\('./src/routes/timetable'\\); require\\('./src/routes/classes'\\); require\\('./src/controllers/attendance'\\); require\\('./src/controllers/timetable'\\); require\\('./src/models/attendance'\\); require\\('./src/models/timetable'\\); console.log\\('ok'\\);\")"
+      "Bash(node -e \"require\\('./src/routes/attendance'\\); require\\('./src/routes/timetable'\\); require\\('./src/routes/classes'\\); require\\('./src/controllers/attendance'\\); require\\('./src/controllers/timetable'\\); require\\('./src/models/attendance'\\); require\\('./src/models/timetable'\\); console.log\\('ok'\\);\")",
+      "Bash(node --check src/routes/faces.js)"
     ]
   }
 }

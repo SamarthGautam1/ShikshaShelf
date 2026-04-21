@@ -5,3 +5,4 @@ marshmallow
 opencv-python-headless
 dlib
 numpy
+requests

@@ -152,6 +152,8 @@ DashboardView.propTypes = { setActiveTab: PropTypes.func.isRequired, token: Prop
 
 /** @constant {number} QR session duration in seconds */
 const QR_SESSION_DURATION = 30;
+/** @constant {number} Face-recognition camera session duration in seconds */
+const FACE_SESSION_DURATION = 60;
 
 const AttendanceView = ({ token }) => {
     const [selectedClassId, setSelectedClassId] = useState('');
@@ -300,13 +302,16 @@ const AttendanceView = ({ token }) => {
     }, [selectedClassId, token, clearTimer]);
 
     /**
-     * Start a countdown timer that expires after QR_SESSION_DURATION seconds.
-     * When the timer reaches 0 the QR session is auto-closed (backend session
-     * close + final roster shown) exactly the same as clicking Stop Attendance.
+     * Start a countdown timer that expires after `duration` seconds. When the
+     * timer reaches 0 the session is auto-closed (backend session close +
+     * final roster shown) exactly the same as clicking Stop Attendance. Used
+     * by both the QR flow (QR_SESSION_DURATION) and the face-scan flow
+     * (FACE_SESSION_DURATION).
+     * @param {number} duration
      */
-    const startCountdown = useCallback(() => {
+    const startCountdown = useCallback((duration = QR_SESSION_DURATION) => {
         clearTimer();
-        setCountdown(QR_SESSION_DURATION);
+        setCountdown(duration);
         setSessionExpired(false);
         closingRef.current = false;
 
@@ -424,6 +429,7 @@ const AttendanceView = ({ token }) => {
             streamRef.current = stream;
             setMode('face');
             setSessionActive(true);
+            startCountdown(FACE_SESSION_DURATION);
 
             // Wait a tick so React renders the <video> element before we attach.
             setTimeout(() => {
@@ -636,7 +642,7 @@ const AttendanceView = ({ token }) => {
             {sessionExpired && !sessionActive && (
                 <div className="text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-yellow-800 font-semibold">
-                        Session expired — click Start QR Session to begin a new one
+                        Session expired — start a new QR or Camera session to continue
                     </p>
                 </div>
             )}
@@ -654,6 +660,21 @@ const AttendanceView = ({ token }) => {
                         />
                     </div>
                     <canvas ref={canvasRef} className="hidden" />
+                    {/* Countdown timer display — mirrors the QR timer UX. */}
+                    <div className="mt-4 max-w-md mx-auto">
+                        <div className="flex items-center justify-center mb-2">
+                            <span className={`text-3xl font-bold tabular-nums ${countdown <= 10 ? 'text-red-600' : 'text-blue-700'}`}>
+                                {countdown}
+                            </span>
+                            <span className="ml-2 text-sm text-gray-500">seconds remaining</span>
+                        </div>
+                        <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden">
+                            <div
+                                className={`h-full rounded-full transition-all duration-1000 ease-linear ${countdown <= 10 ? 'bg-red-500' : 'bg-blue-600'}`}
+                                style={{ width: `${(countdown / FACE_SESSION_DURATION) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
                     <p className="mt-3 text-sm text-gray-700">
                         Unknown faces detected: <span className="font-semibold">{unknownCount}</span>
                     </p>
